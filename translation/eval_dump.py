@@ -37,7 +37,7 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     VOCAB_SIZE = vocab.GetPieceSize()
 
     model = Seq2seq(hidden_dim=HIDDEN_DIM, vocab_size=VOCAB_SIZE, num_layers=NUM_LAYERS, dropout=0,
-                    attn_lambda=attn_lambda, pad_id=pad_id, full_model=full_model, invasive_uniform=invasive_uniform).to(device)
+                    attn_lambda=0.0, pad_id=pad_id, full_model=full_model, invasive_uniform=invasive_uniform).to(device)
     model.load_state_dict(torch.load(model_path))
 
     if not full_model:
