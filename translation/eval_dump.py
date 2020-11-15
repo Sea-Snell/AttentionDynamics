@@ -73,18 +73,18 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu):
 
     train_idxs_set = set(train_idxs)
     for i in range(len(val_data_manager.dataset)):
-    	curr_dict = {}
-    	curr_dict['split'] = 'train'
-    	curr_dict['src'] = val_data_manager.dataset[i].src
-    	curr_dict['trg'] = val_data_manager.dataset[i].trg
-    	if i in train_idxs_set:
-	    	curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
-	    	curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
-	    else:
-	    	curr_dict['beta'] = None
-	    	curr_dict['alpha'] = None
+      curr_dict = {}
+      curr_dict['split'] = 'train'
+      curr_dict['src'] = val_data_manager.dataset[i].src
+      curr_dict['trg'] = val_data_manager.dataset[i].trg
+      if i in train_idxs_set:
+        curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
+        curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
+      else:
+        curr_dict['beta'] = None
+        curr_dict['alpha'] = None
 
-	    items.append(curr_dict)
+      items.append(curr_dict)
     return items, meta_stats
 
 def merge_dicts(dicts):
