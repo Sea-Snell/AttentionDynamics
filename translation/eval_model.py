@@ -26,7 +26,7 @@ def op_on_hidden(op1, op2, hc):
 
 
 
-def predict_beam(model, sentences, pad_id, k=5, max_length=100):
+def predict_beam(model, sentences, data_manager, pad_id, bos_id, device, k=5, max_length=100):
 	"""Make predictions for the given inputs using beam search.
 
 	Args:
@@ -69,13 +69,13 @@ def predict_beam(model, sentences, pad_id, k=5, max_length=100):
 	hypothesis_count = batch_size * k
 	hypothesis_ends = torch.zeros(hypothesis_count, dtype=torch.bool).to(device)
 	hypothesis_scores = torch.zeros(hypothesis_count, dtype=torch.float).to(device)
-	all_hypothesis = torch.tensor([[bos_id for _ in range(hypothesis_count)]]).to(device)
-	source = make_batch(sentences, additional_eos=False)
+	all_hypothesis = torch.tensor([[data_manager.bos_id for _ in range(hypothesis_count)]]).to(device)
+	source = data_manager.make_batch(sentences, additional_eos=False)
 	encoder_output, encoder_mask, decoder_hidden = model.encode(source)
 	hidden_dim = encoder_output.shape[-1] // 2
 
 	# take care of the first step of beam search
-	next_tokens = torch.tensor([[bos_id for _ in range(batch_size)]]).to(device)
+	next_tokens = torch.tensor([[data_manager.bos_id for _ in range(batch_size)]]).to(device)
 
 	logits, decoder_hidden, attention_weights = model.decode(
 					next_tokens, decoder_hidden, encoder_output, encoder_mask)
@@ -84,7 +84,7 @@ def predict_beam(model, sentences, pad_id, k=5, max_length=100):
 	flattend_toks = topk_idx.reshape(1, -1)
 	next_tokens = flattend_toks
 	hypothesis_scores += topk_value.reshape(-1)
-	hypothesis_ends = hypothesis_ends | (flattend_toks.reshape(-1) == eos_id)
+	hypothesis_ends = hypothesis_ends | (flattend_toks.reshape(-1) == data_manager.eos_id)
 	all_hypothesis = torch.cat((all_hypothesis, next_tokens), axis=0)
 
 	# repeat the tensor k times
@@ -92,7 +92,7 @@ def predict_beam(model, sentences, pad_id, k=5, max_length=100):
 	encoder_output = encoder_output[:, repeat_indicator, :]
 	encoder_mask = encoder_mask[:, repeat_indicator]
 	decoder_hidden = op_on_hidden(lambda h: h[:, repeat_indicator, :], lambda h: h[:, repeat_indicator, :], decoder_hidden)
-	pad_lsm = torch.ones(VOCAB_SIZE).to(device) * (-1e9)
+	pad_lsm = torch.ones(data_manager.VOCAB_SIZE).to(device) * (-1e9)
 	pad_lsm[pad_id] = 0
 
 	for step in range(max_length - 2):
@@ -121,7 +121,7 @@ def predict_beam(model, sentences, pad_id, k=5, max_length=100):
 		topk_old_hypothesis_idx = topk_hypothesis_idx // k
 
 		next_tokens = torch.gather(topk_idx, 1, topk_hypothesis_idx).reshape(1, -1)
-		hypothesis_ends = ((next_tokens == pad_id) | (next_tokens == eos_id)).flatten()
+		hypothesis_ends = ((next_tokens == data_manager.pad_id) | (next_tokens == data_manager.eos_id)).flatten()
 
 		all_hypothesis = all_hypothesis.reshape(step + 2, batch_size, k)
 		hypothesis_gather_idx = topk_old_hypothesis_idx.unsqueeze(0).repeat(step + 2, 1, 1)
@@ -186,7 +186,7 @@ def evaluate_next_token(model, data_manager, batch_size=64):
 	return perplexity, accuracy, val_attentions
 
 
-def predict_greedy(model, sentences, pad_id, max_length=100):
+def predict_greedy(model, sentences, data_manager, pad_id, bos_id, device, max_length=100):
 	"""Make predictions for the given inputs using greedy inference.
 
 	Args:
@@ -208,14 +208,14 @@ def predict_greedy(model, sentences, pad_id, max_length=100):
 	# adding a large positive number like 1e9 to the appropriate logits.
 
 	# YOUR CODE HERE
-	source = make_batch(sentences, additional_eos=True)
+	source = data_manager.make_batch(sentences, additional_eos=True)
 	batch_size = len(sentences)
 	encoder_output, encoder_mask, encoder_hidden = model.encode(source)
 
 	# initialize the beam search
-	batch_hypothesis = torch.tensor([[bos_id] for _ in range(batch_size)]).to(device)
+	batch_hypothesis = torch.tensor([[data_manager.bos_id] for _ in range(batch_size)]).to(device)
 	hypothesis_ends = torch.zeros(batch_size, dtype=torch.bool).to(device)
-	next_words = [[bos_id for _ in range(batch_size)]]
+	next_words = [[data_manager.bos_id for _ in range(batch_size)]]
 	decoder_hidden = encoder_hidden
 	for time_step in range(max_length):
 		decoder_input = torch.tensor(next_words).to(device)
@@ -226,7 +226,7 @@ def predict_greedy(model, sentences, pad_id, max_length=100):
 		best_toks = torch.argmax(logits, dim=-1)
 		next_words = best_toks.unsqueeze(0)
 		batch_hypothesis = torch.cat((batch_hypothesis, best_toks.unsqueeze(1)), dim=-1)
-		hypothesis_ends = hypothesis_ends | (best_toks == eos_id)
+		hypothesis_ends = hypothesis_ends | (best_toks == data_manager.eos_id)
 	return [vocab.DecodeIds(hypothesis.cpu().numpy().tolist()) for hypothesis in batch_hypothesis]
 
 
@@ -240,10 +240,10 @@ def evaluate(model, data_manager, batch_size=64, method="greedy"):
 		for start_index in range(0, len(source_sentences), batch_size):
 			if method == "greedy":
 				prediction_batch = predict_greedy(
-						model, source_sentences[start_index:start_index + batch_size], data_manager.pad_id)
+						model, source_sentences[start_index:start_index + batch_size], data_manager, data_manager.pad_id, data_manager.bos_id, data_manager.device)
 			else:
 				prediction_batch = predict_beam(
-						model, source_sentences[start_index:start_index + batch_size], data_manager.pad_id)
+						model, source_sentences[start_index:start_index + batch_size], data_manager, data_manager.pad_id, data_manager.bos_id, data_manager.device)
 				prediction_batch = [candidates[0] for candidates in prediction_batch]
 			predictions.extend(prediction_batch)
 	return sacrebleu.corpus_bleu(predictions, [target_sentences]).score

@@ -7,13 +7,15 @@ import torch.nn as nn
 import random
 
 class DataManager:
-	def __init__(self, dataset, vocab, bos_id, eos_id, pad_id, device):
-		self.vocab = vocab
-		self.bos_id = bos_id
-		self.eos_id = eos_id
-		self.dataset = dataset
-		self.device = device
-		self.pad_id = pad_id
+	def __init__(self, dataset, vocab, bos_id, eos_id, pad_id, device, num_layers):
+            self.vocab = vocab
+            self.bos_id = bos_id
+            self.eos_id = eos_id
+            self.dataset = dataset
+            self.device = device
+            self.pad_id = pad_id
+            self.VOCAB_SIZE = self.vocab.GetPieceSize()
+            self.NUM_LAYERS = num_layers
 
 	def sentence2ids_nopad(self, sentence: str, additional_eos: bool) -> List[int]:
 		indices = [self.bos_id] + self.vocab.EncodeAsIds(sentence) + [self.eos_id]
