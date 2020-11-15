@@ -202,6 +202,66 @@ def load_news_commentary_v14_cs_fr():
 	vocab = init_vocab("data/news-commentary-v14-cs-fr/train.cs,data/news-commentary-v14-cs-fr/train.fr", "data/news-commentary-v14-cs-fr/news-commentary-v14-cs-fr")
 	return training_data, validation_data, vocab
 
+# def load_news_commentary_v14_en_hi():
+# 	with open('data/news-commentary-v14-en-hi/train.en', 'r') as f:
+# 		train_en = f.read().split('\n')
+# 	with open('data/news-commentary-v14-en-hi/train.hi', 'r') as f:
+# 		train_hi = f.read().split('\n')
+# 	with open('data/news-commentary-v14-en-hi/val.en', 'r') as f:
+# 		val_en = f.read().split('\n')
+# 	with open('data/news-commentary-v14-en-hi/val.hi', 'r') as f:
+# 		val_hi = f.read().split('\n')
+
+# 	training_data = [Item(train_en[i], train_hi[i]) for i in range(len(train_hi))]
+# 	validation_data = [Item(val_en[i], val_hi[i]) for i in range(len(val_hi))]
+# 	vocab = init_vocab("data/news-commentary-v14-en-hi/train.en,data/news-commentary-v14-en-hi/train.hi", "data/news-commentary-v14-en-hi/news-commentary-v14-en-hi")
+# 	return training_data, validation_data, vocab
+
+def load_news_commentary_v14_ar_id():
+	with open('data/news-commentary-v14-ar-id/train.ar', 'r') as f:
+		train_ar = f.read().split('\n')
+	with open('data/news-commentary-v14-ar-id/train.id', 'r') as f:
+		train_id = f.read().split('\n')
+	with open('data/news-commentary-v14-ar-id/val.ar', 'r') as f:
+		val_ar = f.read().split('\n')
+	with open('data/news-commentary-v14-ar-id/val.id', 'r') as f:
+		val_id = f.read().split('\n')
+	
+	training_data = [Item(train_ar[i], train_id[i]) for i in range(len(train_id))]
+	validation_data = [Item(val_ar[i], val_id[i]) for i in range(len(val_id))]
+	vocab = init_vocab("data/news-commentary-v14-ar-id/train.ar,data/news-commentary-v14-ar-id/train.id", "data/news-commentary-v14-ar-id/news-commentary-v14-ar-id")
+	return training_data, validation_data, vocab
+
+def load_news_commentary_v14_ar_id():
+	with open('data/news-commentary-v14-ar-hi/train.ar', 'r') as f:
+		train_ar = f.read().split('\n')
+	with open('data/news-commentary-v14-ar-hi/train.hi', 'r') as f:
+		train_hi = f.read().split('\n')
+	with open('data/news-commentary-v14-ar-hi/val.ar', 'r') as f:
+		val_ar = f.read().split('\n')
+	with open('data/news-commentary-v14-ar-hi/val.hi', 'r') as f:
+		val_hi = f.read().split('\n')
+	
+	training_data = [Item(train_ar[i], train_hi[i]) for i in range(len(train_hi))]
+	validation_data = [Item(val_ar[i], val_hi[i]) for i in range(len(val_hi))]
+	vocab = init_vocab("data/news-commentary-v14-ar-hi/train.ar,data/news-commentary-v14-ar-hi/train.hi", "data/news-commentary-v14-ar-hi/news-commentary-v14-ar-hi")
+	return training_data, validation_data, vocab
+
+def load_news_commentary_v14_en_nl():
+	with open('data/news-commentary-v14-en-nl/train.en', 'r') as f:
+		train_en = f.read().split('\n')
+	with open('data/news-commentary-v14-en-nl/train.nl', 'r') as f:
+		train_nl = f.read().split('\n')
+	with open('data/news-commentary-v14-en-nl/val.en', 'r') as f:
+		val_en = f.read().split('\n')
+	with open('data/news-commentary-v14-en-nl/val.nl', 'r') as f:
+		val_nl = f.read().split('\n')
+
+	training_data = [Item(train_en[i], train_nl[i]) for i in range(len(train_nl))]
+	validation_data = [Item(val_en[i], val_nl[i]) for i in range(len(val_nl))]
+	vocab = init_vocab("data/news-commentary-v14-en-nl/train.en,data/news-commentary-v14-en-nl/train.nl", "data/news-commentary-v14-en-nl/news-commentary-v14-en-nl")
+	return training_data, validation_data, vocab
+
 
 def load_dataset_by_name(dataset):
 	if dataset == 'multi30k':
@@ -218,5 +278,13 @@ def load_dataset_by_name(dataset):
 		return load_news_commentary_v14_cs_de()
 	if dataset == 'news_commentary_v14_cs_fr':
 		return load_news_commentary_v14_cs_fr()
+	# if dataset == 'news_commentary_v14_en_hi':
+	# 	return load_news_commentary_v14_en_hi()
+	if dataset == 'news_commentary_v14_ar_id':
+		return load_news_commentary_v14_ar_id()
+	if dataset == 'news_commentary_v14_ar_id':
+		return load_news_commentary_v14_ar_id()
+	if dataset == 'news_commentary_v14_en_nl':
+		return load_news_commentary_v14_en_nl()
 
 
