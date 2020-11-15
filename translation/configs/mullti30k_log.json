@@ -1,4 +1,4 @@
 [
-	{"name": "normal_A", "iteration": 1000, "seed": 12, "uniform": false, },
-	{"name": "normal_A", "iteration": 1000, "seed": 12, "uniform": false}
+	{"name": "normal_A", "iteration": 2000, "seed": 12, "uniform": false, "dataset": "multi30k"},
+	{"name": "normal_A", "iteration": 4000, "seed": 12, "uniform": false, "dataset": "multi30k"}
 ]

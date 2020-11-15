@@ -13,7 +13,7 @@ import numpy as np
 import pickle as pkl
 import os
 from typing import List
-from load_datasets import StateManager
+from load_datasets import make_batch, make_batch_iterator
 
 epsilon = 1e-6
 
@@ -26,7 +26,7 @@ def op_on_hidden(op1, op2, hc):
 
 
 
-def predict_beam(model, sentences, data_manager, device, k=5, max_length=100):
+def predict_beam(model, sentences, data_manager, k=5, max_length=100):
 	"""Make predictions for the given inputs using beam search.
 
 	Args:
@@ -70,7 +70,7 @@ def predict_beam(model, sentences, data_manager, device, k=5, max_length=100):
 	hypothesis_ends = torch.zeros(hypothesis_count, dtype=torch.bool).to(data_manager.device)
 	hypothesis_scores = torch.zeros(hypothesis_count, dtype=torch.float).to(data_manager.device)
 	all_hypothesis = torch.tensor([[data_manager.bos_id for _ in range(hypothesis_count)]]).to(data_manager.device)
-	source = data_manager.make_batch(sentences, additional_eos=False)
+	source = make_batch(data_manager, sentences, additional_eos=False)
 	encoder_output, encoder_mask, decoder_hidden = model.encode(source)
 	hidden_dim = encoder_output.shape[-1] // 2
 
@@ -141,7 +141,7 @@ def predict_beam(model, sentences, data_manager, device, k=5, max_length=100):
 		if hypothesis_ends.all():
 			break
 	all_hypothesis = all_hypothesis.T.reshape(batch_size, k, -1)
-	all_sents = [[vocab.DecodeIds(sent.cpu().numpy().tolist()) for sent in k_sents] for k_sents in all_hypothesis]
+	all_sents = [[data_manager.vocab.DecodeIds(sent.cpu().numpy().tolist()) for sent in k_sents] for k_sents in all_hypothesis]
 	return all_sents
 
 
@@ -179,7 +179,7 @@ def evaluate_next_token(model, data_manager, batch_size=64):
 	correct_predictions = 0
 	val_attentions = []
 	with torch.no_grad():
-		for source, target in data_manager.make_batch_iterator(batch_size):
+		for source, target in make_batch_iterator(data_manager, batch_size):
 			encoder_output, encoder_mask, encoder_hidden = model.encode(source)
 			decoder_input, decoder_target = target[:-1], target[1:]
 			logits, decoder_hidden, attention_weights = model.decode(
@@ -227,7 +227,7 @@ def predict_greedy(model, sentences, data_manager, max_length=100):
 	# adding a large positive number like 1e9 to the appropriate logits.
 
 	# YOUR CODE HERE
-	source = data_manager.make_batch(sentences, additional_eos=True)
+	source = make_batch(data_manager, sentences, additional_eos=True)
 	batch_size = len(sentences)
 	encoder_output, encoder_mask, encoder_hidden = model.encode(source)
 
@@ -246,7 +246,7 @@ def predict_greedy(model, sentences, data_manager, max_length=100):
 		next_words = best_toks.unsqueeze(0)
 		batch_hypothesis = torch.cat((batch_hypothesis, best_toks.unsqueeze(1)), dim=-1)
 		hypothesis_ends = hypothesis_ends | (best_toks == data_manager.eos_id)
-	return [vocab.DecodeIds(hypothesis.cpu().numpy().tolist()) for hypothesis in batch_hypothesis]
+	return [data_manager.vocab.DecodeIds(hypothesis.cpu().numpy().tolist()) for hypothesis in batch_hypothesis]
 
 
 def evaluate(model, data_manager, batch_size=64, method="greedy"):

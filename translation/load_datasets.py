@@ -47,7 +47,7 @@ def make_batch(state_manager, sentences: List[str], additional_eos: bool) -> tor
 	# function to combine a list of variable-length sequences with padding.
 	# YOUR CODE HERE
 	#...
-	batch_ids = [torch.tensor(sentence2ids_nopad(sentence, additional_eos)) for sentence in sentences]
+	batch_ids = [torch.tensor(sentence2ids_nopad(state_manager, sentence, additional_eos)) for sentence in sentences]
 	return nn.utils.rnn.pad_sequence(batch_ids).to(state_manager.device)
 
 
@@ -75,7 +75,7 @@ def make_batch_iterator(state_manager, batch_size, shuffle=False):
 		example_batch = examples[start_index:start_index + batch_size]
 		source_sentences = [example.src for example in example_batch]
 		target_sentences = [example.trg for example in example_batch]
-		yield make_batch(source_sentences, additional_eos=False), make_batch(target_sentences, additional_eos=False)
+		yield make_batch(state_manager, source_sentences, additional_eos=False), make_batch(state_manager, target_sentences, additional_eos=False)
 
 
 
