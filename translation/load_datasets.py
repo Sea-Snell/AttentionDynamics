@@ -6,73 +6,76 @@ import torch
 import torch.nn as nn
 import random
 
-class DataManager:
-	def __init__(self, dataset, vocab, bos_id, eos_id, pad_id, device, num_layers):
-            self.vocab = vocab
-            self.bos_id = bos_id
-            self.eos_id = eos_id
-            self.dataset = dataset
-            self.device = device
-            self.pad_id = pad_id
-            self.VOCAB_SIZE = self.vocab.GetPieceSize()
-            self.NUM_LAYERS = num_layers
+class StateManager:
+	def __init__(self, dataset, vocab, bos_id, eos_id, pad_id, device, config):
+		self.vocab = vocab
+		self.bos_id = bos_id
+		self.eos_id = eos_id
+		self.dataset = dataset
+		self.device = device
+		self.pad_id = pad_id
+		self.vocab_size = self.vocab.GetPieceSize()
+		self.num_layers = config['num_layers']
+		self.dropout = config['dropout']
+		self.batch_size = config['batch_size']
+		self.hidden_dim = config['hidden_dim']
 
-	def sentence2ids_nopad(self, sentence: str, additional_eos: bool) -> List[int]:
-		indices = [self.bos_id] + self.vocab.EncodeAsIds(sentence) + [self.eos_id]
-		if additional_eos:
-			indices.append(self.eos_id)
-		return indices
+def sentence2ids_nopad(state_manager, sentence: str, additional_eos: bool) -> List[int]:
+	indices = [state_manager.bos_id] + state_manager.vocab.EncodeAsIds(sentence) + [state_manager.eos_id]
+	if additional_eos:
+		indices.append(state_manager.eos_id)
+	return indices
 
-	def make_batch(self, sentences: List[str], additional_eos: bool) -> torch.Tensor:
-		"""Convert a list of sentences into a batch of subword indices.
+def make_batch(state_manager, sentences: List[str], additional_eos: bool) -> torch.Tensor:
+	"""Convert a list of sentences into a batch of subword indices.
 
-		Args:
-			sentences: A list of sentences, each of which is a string.
+	Args:
+		sentences: A list of sentences, each of which is a string.
 
-		Returns:
-			A LongTensor of size (max_sequence_length, batch_size) containing the
-			subword indices for the sentences, where max_sequence_length is the length
-			of the longest sentence as encoded by the subword vocabulary and batch_size
-			is the number of sentences in the batch. A beginning-of-sentence token
-			should be included before each sequence, and an end-of-sentence token should
-			be included after each sequence. Empty slots at the end of shorter sequences
-			should be filled with padding tokens. The tensor should be located on the
-			device defined at the beginning of the notebook.
-		"""
+	Returns:
+		A LongTensor of size (max_sequence_length, batch_size) containing the
+		subword indices for the sentences, where max_sequence_length is the length
+		of the longest sentence as encoded by the subword vocabulary and batch_size
+		is the number of sentences in the batch. A beginning-of-sentence token
+		should be included before each sequence, and an end-of-sentence token should
+		be included after each sequence. Empty slots at the end of shorter sequences
+		should be filled with padding tokens. The tensor should be located on the
+		device defined at the beginning of the notebook.
+	"""
 
-		# Implementation tip: You can use the nn.utils.rnn.pad_sequence utility
-		# function to combine a list of variable-length sequences with padding.
-		# YOUR CODE HERE
-		#...
-		batch_ids = [torch.tensor(self.sentence2ids_nopad(sentence, additional_eos)) for sentence in sentences]
-		return nn.utils.rnn.pad_sequence(batch_ids).to(self.device)
+	# Implementation tip: You can use the nn.utils.rnn.pad_sequence utility
+	# function to combine a list of variable-length sequences with padding.
+	# YOUR CODE HERE
+	#...
+	batch_ids = [torch.tensor(sentence2ids_nopad(sentence, additional_eos)) for sentence in sentences]
+	return nn.utils.rnn.pad_sequence(batch_ids).to(state_manager.device)
 
 
-	def make_batch_iterator(self, batch_size, shuffle=False):
-		"""Make a batch iterator that yields source-target pairs.
+def make_batch_iterator(state_manager, batch_size, shuffle=False):
+	"""Make a batch iterator that yields source-target pairs.
 
-		Args:
-			dataset: A torchtext dataset object.
-			batch_size: An integer batch size.
-			shuffle: A boolean indicating whether to shuffle the examples.
+	Args:
+		dataset: A torchtext dataset object.
+		batch_size: An integer batch size.
+		shuffle: A boolean indicating whether to shuffle the examples.
 
-		Yields:
-			Pairs of tensors constructed by calling the make_batch function on the
-			source and target sentences in the current group of examples. The max
-			sequence length can differ between the source and target tensor, but the
-			batch size will be the same. The final batch may be smaller than the given
-			batch size.
-		"""
+	Yields:
+		Pairs of tensors constructed by calling the make_batch function on the
+		source and target sentences in the current group of examples. The max
+		sequence length can differ between the source and target tensor, but the
+		batch size will be the same. The final batch may be smaller than the given
+		batch size.
+	"""
 
-		examples = list(self.dataset)
-		if shuffle:
-			random.shuffle(examples)
+	examples = list(state_manager.dataset)
+	if shuffle:
+		random.shuffle(examples)
 
-		for start_index in range(0, len(examples), batch_size):
-			example_batch = examples[start_index:start_index + batch_size]
-			source_sentences = [example.src for example in example_batch]
-			target_sentences = [example.trg for example in example_batch]
-			yield self.make_batch(source_sentences, additional_eos=False), self.make_batch(target_sentences, additional_eos=False)
+	for start_index in range(0, len(examples), batch_size):
+		example_batch = examples[start_index:start_index + batch_size]
+		source_sentences = [example.src for example in example_batch]
+		target_sentences = [example.trg for example in example_batch]
+		yield make_batch(source_sentences, additional_eos=False), make_batch(target_sentences, additional_eos=False)
 
 
 

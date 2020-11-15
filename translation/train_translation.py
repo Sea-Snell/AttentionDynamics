@@ -18,7 +18,7 @@ import numpy as np
 import pickle as pkl
 import os
 from typing import List
-from load_datasets import load_dataset_by_name, DataManager
+from load_datasets import load_dataset_by_name, StateManager, make_batch, make_batch_iterator
 from eval_model import evaluate, evaluate_next_token
 
 def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_only=False):
@@ -37,7 +37,7 @@ def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_on
 	step_idx = 0
 
 	for epoch in range(num_epochs):
-		batch_iterator = train_data_manager.make_batch_iterator(batch_size, shuffle=True)
+		batch_iterator = make_batch_iterator(train_data_manager, batch_size, shuffle=True)
 		print('epoch %d' % epoch)
 		model.train()
 		for i, (source, target) in enumerate(batch_iterator, start=1):
@@ -89,10 +89,6 @@ if __name__ == '__main__':
 	bos_id = vocab.PieceToId("<s>")
 	eos_id = vocab.PieceToId("</s>")
 
-	val_data_manager = DataManager(validation_data, vocab, bos_id, eos_id, pad_id, device)
-	train_data_manager = DataManager(training_data, vocab, bos_id, eos_id, pad_id, device)
-	VOCAB_SIZE = vocab.GetPieceSize()
-
 	with open(args.config, 'r') as f:
 		model_config = json.load(f)
 
@@ -100,6 +96,10 @@ if __name__ == '__main__':
 	DROPOUT = model_config['dropout']
 	HIDDEN_DIM = model_config['hidden_dim']
 	batch_size = model_config['batch_size']
+
+	val_data_manager = StateManager(validation_data, vocab, bos_id, eos_id, pad_id, device, model_config)
+	train_data_manager = StateManager(training_data, vocab, bos_id, eos_id, pad_id, device, model_config)
+	VOCAB_SIZE = vocab.GetPieceSize()
 
 	save_every = args.save_every
 	num_epochs = args.epochs

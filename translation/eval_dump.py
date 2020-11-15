@@ -19,7 +19,7 @@ from argparse import ArgumentParser
 import numpy as np
 import pickle as pkl
 import os
-from load_datasets import load_dataset_by_name, DataManager
+from load_datasets import load_dataset_by_name, StateManager
 from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2
 
 def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu):
@@ -31,22 +31,22 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu):
     model.load_state_dict(torch.load(model_path))
 
     if not full_model:
-        state_scores_val = get_state_scores(model, validation_data)
+        state_scores_val = get_state_scores(model, val_data_manager.dataset)
     else:
         state_scores_val = get_state_scores2(model, validation_data)[1]
 
-    perplexity_val, acc_val, attn_val = evaluate_next_token(model, validation_data)
+    perplexity_val, acc_val, attn_val = evaluate_next_token(model, val_data_manager.dataset)
     meta_stats['val_acc'] = acc_val
     meta_stats['val_perplexity'] = perplexity_val
 
     if eval_bleu:
-      bleu_val = evaluate(model, validation_data, method='beam')
+      bleu_val = evaluate(model, val_data_manager.dataset, method='beam')
       meta_stats['val_bleu'] = bleu_val
 
     random.seed(1)
-    train_idxs = random.sample(range(len(training_data)), k=len(validation_data))
+    train_idxs = random.sample(range(len(val_data_manager.dataset)), k=len(val_data_manager.dataset))
     inverse_train_idx_map = {train_idxs[i]: i for i in range(len(train_idxs))}
-    eval_train = [training_data[idx] for idx in train_idxs]
+    eval_train = [val_data_manager.dataset[idx] for idx in train_idxs]
     if not full_model:
     	state_scores_train = get_state_scores(model, eval_train)
     else:
@@ -61,22 +61,22 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu):
       meta_stats['train_bleu'] = bleu_train
 
     items = []
-    for i in range(len(validation_data)):
+    for i in range(len(val_data_manager.dataset)):
     	curr_dict = {}
     	curr_dict['split'] = 'val'
-    	curr_dict['src'] = validation_data[i].src
-    	curr_dict['trg'] = validation_data[i].trg
+    	curr_dict['src'] = val_data_manager.dataset[i].src
+    	curr_dict['trg'] = val_data_manager.dataset[i].trg
     	curr_dict['beta'] = state_scores_val[i]
     	curr_dict['alpha'] = attn_val[i]
 
     	items.append(curr_dict)
 
     train_idxs_set = set(train_idxs)
-    for i in range(len(training_data)):
+    for i in range(len(val_data_manager.dataset)):
     	curr_dict = {}
     	curr_dict['split'] = 'train'
-    	curr_dict['src'] = training_data[i].src
-    	curr_dict['trg'] = training_data[i].trg
+    	curr_dict['src'] = val_data_manager.dataset[i].src
+    	curr_dict['trg'] = val_data_manager.dataset[i].trg
     	if i in train_idxs_set:
 	    	curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
 	    	curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
@@ -123,12 +123,12 @@ if __name__ == '__main__':
   bos_id = vocab.PieceToId("<s>")
   eos_id = vocab.PieceToId("</s>")
 
-  val_data_manager = DataManager(validation_data, vocab, bos_id, eos_id, pad_id, device)
-  train_data_manager = DataManager(training_data, vocab, bos_id, eos_id, pad_id, device)
-  VOCAB_SIZE = vocab.GetPieceSize()
-
   with open(args.config, 'r') as f:
     model_config = json.load(f)
+
+  val_data_manager = StateManager(validation_data, vocab, bos_id, eos_id, pad_id, device, model_config)
+  train_data_manager = StateManager(training_data, vocab, bos_id, eos_id, pad_id, device, model_config)
+  VOCAB_SIZE = vocab.GetPieceSize()
 
   NUM_LAYERS = model_config['num_layers']
   DROPOUT = model_config['dropout']

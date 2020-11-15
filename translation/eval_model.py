@@ -13,7 +13,7 @@ import numpy as np
 import pickle as pkl
 import os
 from typing import List
-from load_datasets import DataManager
+from load_datasets import StateManager
 
 epsilon = 1e-6
 
@@ -26,7 +26,7 @@ def op_on_hidden(op1, op2, hc):
 
 
 
-def predict_beam(model, sentences, data_manager, pad_id, bos_id, device, k=5, max_length=100):
+def predict_beam(model, sentences, data_manager, device, k=5, max_length=100):
 	"""Make predictions for the given inputs using beam search.
 
 	Args:
@@ -67,15 +67,15 @@ def predict_beam(model, sentences, data_manager, pad_id, bos_id, device, k=5, ma
 	# prepare all the result aggregators
 	batch_size = len(sentences)
 	hypothesis_count = batch_size * k
-	hypothesis_ends = torch.zeros(hypothesis_count, dtype=torch.bool).to(device)
-	hypothesis_scores = torch.zeros(hypothesis_count, dtype=torch.float).to(device)
-	all_hypothesis = torch.tensor([[data_manager.bos_id for _ in range(hypothesis_count)]]).to(device)
+	hypothesis_ends = torch.zeros(hypothesis_count, dtype=torch.bool).to(data_manager.device)
+	hypothesis_scores = torch.zeros(hypothesis_count, dtype=torch.float).to(data_manager.device)
+	all_hypothesis = torch.tensor([[data_manager.bos_id for _ in range(hypothesis_count)]]).to(data_manager.device)
 	source = data_manager.make_batch(sentences, additional_eos=False)
 	encoder_output, encoder_mask, decoder_hidden = model.encode(source)
 	hidden_dim = encoder_output.shape[-1] // 2
 
 	# take care of the first step of beam search
-	next_tokens = torch.tensor([[data_manager.bos_id for _ in range(batch_size)]]).to(device)
+	next_tokens = torch.tensor([[data_manager.bos_id for _ in range(batch_size)]]).to(data_manager.device)
 
 	logits, decoder_hidden, attention_weights = model.decode(
 					next_tokens, decoder_hidden, encoder_output, encoder_mask)
@@ -92,8 +92,8 @@ def predict_beam(model, sentences, data_manager, pad_id, bos_id, device, k=5, ma
 	encoder_output = encoder_output[:, repeat_indicator, :]
 	encoder_mask = encoder_mask[:, repeat_indicator]
 	decoder_hidden = op_on_hidden(lambda h: h[:, repeat_indicator, :], lambda h: h[:, repeat_indicator, :], decoder_hidden)
-	pad_lsm = torch.ones(data_manager.VOCAB_SIZE).to(device) * (-1e9)
-	pad_lsm[pad_id] = 0
+	pad_lsm = torch.ones(data_manager.vocab_size).to(data_manager.device) * (-1e9)
+	pad_lsm[data_manager.pad_id] = 0
 
 	for step in range(max_length - 2):
 		logits, decoder_hidden, attention_weights = model.decode(
@@ -135,7 +135,7 @@ def predict_beam(model, sentences, data_manager, pad_id, bos_id, device, k=5, ma
 			h = selected_h.permute(2, 0, 1, 3).reshape(num_layers, k * batch_size, h_dim)
 			return h.contiguous()
 		# get the new hidden states
-		decoder_hidden = op_on_hidden(lambda x: filter_hidden(x, NUM_LAYERS, hidden_dim), lambda x: filter_hidden(x, 1, 2 * hidden_dim), decoder_hidden)
+		decoder_hidden = op_on_hidden(lambda x: filter_hidden(x, data_manager.num_layers, hidden_dim), lambda x: filter_hidden(x, 1, 2 * hidden_dim), decoder_hidden)
 		hypothesis_scores = topk_hypothesis_values.reshape(-1)
 
 		if hypothesis_ends.all():
@@ -144,6 +144,25 @@ def predict_beam(model, sentences, data_manager, pad_id, bos_id, device, k=5, ma
 	all_sents = [[vocab.DecodeIds(sent.cpu().numpy().tolist()) for sent in k_sents] for k_sents in all_hypothesis]
 	return all_sents
 
+
+def get_state_scores(model, dataset):
+    assert model.dropout == 0
+    model.train()
+    val_data_iter = make_batch_iterator(dataset, 1)
+    all_state_scores = []
+    for data_id, (source, target) in enumerate(val_data_iter):
+        all_state_scores.append(model.get_state_scores(source, target)[0])
+    return all_state_scores
+
+
+def get_state_scores2(model, dataset):
+    assert model.dropout == 0
+    model.train()
+    val_data_iter = make_batch_iterator(dataset, 1)
+    all_state_scores = []
+    for data_id, (source, target) in enumerate(val_data_iter):
+        all_state_scores.append(model.get_state_scores2(source, target)[0])
+    return all_state_scores
 
 
 def evaluate_next_token(model, data_manager, batch_size=64):
@@ -186,7 +205,7 @@ def evaluate_next_token(model, data_manager, batch_size=64):
 	return perplexity, accuracy, val_attentions
 
 
-def predict_greedy(model, sentences, data_manager, pad_id, bos_id, device, max_length=100):
+def predict_greedy(model, sentences, data_manager, max_length=100):
 	"""Make predictions for the given inputs using greedy inference.
 
 	Args:
@@ -213,16 +232,16 @@ def predict_greedy(model, sentences, data_manager, pad_id, bos_id, device, max_l
 	encoder_output, encoder_mask, encoder_hidden = model.encode(source)
 
 	# initialize the beam search
-	batch_hypothesis = torch.tensor([[data_manager.bos_id] for _ in range(batch_size)]).to(device)
-	hypothesis_ends = torch.zeros(batch_size, dtype=torch.bool).to(device)
+	batch_hypothesis = torch.tensor([[data_manager.bos_id] for _ in range(batch_size)]).to(data_manager.device)
+	hypothesis_ends = torch.zeros(batch_size, dtype=torch.bool).to(data_manager.device)
 	next_words = [[data_manager.bos_id for _ in range(batch_size)]]
 	decoder_hidden = encoder_hidden
 	for time_step in range(max_length):
-		decoder_input = torch.tensor(next_words).to(device)
+		decoder_input = torch.tensor(next_words).to(data_manager.device)
 		logits, decoder_hidden, attention_weights = model.decode(
 					decoder_input, decoder_hidden, encoder_output, encoder_mask)
 		logits = logits.squeeze(0)
-		logits[:, pad_id] += hypothesis_ends * 1e9
+		logits[:, data_manager.pad_id] += hypothesis_ends * 1e9
 		best_toks = torch.argmax(logits, dim=-1)
 		next_words = best_toks.unsqueeze(0)
 		batch_hypothesis = torch.cat((batch_hypothesis, best_toks.unsqueeze(1)), dim=-1)
@@ -240,10 +259,10 @@ def evaluate(model, data_manager, batch_size=64, method="greedy"):
 		for start_index in range(0, len(source_sentences), batch_size):
 			if method == "greedy":
 				prediction_batch = predict_greedy(
-						model, source_sentences[start_index:start_index + batch_size], data_manager, data_manager.pad_id, data_manager.bos_id, data_manager.device)
+						model, source_sentences[start_index:start_index + batch_size], data_manager)
 			else:
 				prediction_batch = predict_beam(
-						model, source_sentences[start_index:start_index + batch_size], data_manager, data_manager.pad_id, data_manager.bos_id, data_manager.device)
+						model, source_sentences[start_index:start_index + batch_size], data_manager)
 				prediction_batch = [candidates[0] for candidates in prediction_batch]
 			predictions.extend(prediction_batch)
 	return sacrebleu.corpus_bleu(predictions, [target_sentences]).score
