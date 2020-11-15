@@ -19,7 +19,7 @@ from argparse import ArgumentParser
 import numpy as np
 import pickle as pkl
 import os
-from load_datasets import load_dataset_by_name, StateManager
+from load_datasets import load_dataset_by_name, StateManager, sentence2ids_nopad
 from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2
 
 def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset):
@@ -41,11 +41,10 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     model.load_state_dict(torch.load(model_path))
 
     if not full_model:
-        state_scores_val = get_state_scores(model, val_data_manager.dataset)
+        state_scores_val = get_state_scores(model, val_data_manager)
     else:
-        state_scores_val = get_state_scores2(model, validation_data)[1]
-
-    perplexity_val, acc_val, attn_val = evaluate_next_token(model, val_data_manager.dataset)
+        state_scores_val = get_state_scores2(model, val_data_manager)
+    perplexity_val, acc_val, attn_val = evaluate_next_token(model, val_data_manager)
     meta_stats['val_acc'] = acc_val
     meta_stats['val_perplexity'] = perplexity_val
 
@@ -54,13 +53,13 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
       meta_stats['val_bleu'] = bleu_val
 
     random.seed(1)
-    train_idxs = random.sample(range(len(val_data_manager.dataset)), k=len(val_data_manager.dataset))
+    train_idxs = random.sample(range(len(train_data_manager.dataset)), k=len(val_data_manager.dataset))
     inverse_train_idx_map = {train_idxs[i]: i for i in range(len(train_idxs))}
-    eval_train = [val_data_manager.dataset[idx] for idx in train_idxs]
+    eval_train = StateManager([train_data_manager.dataset[idx] for idx in train_idxs], vocab, bos_id, eos_id, pad_id, device, model_config)
     if not full_model:
-    	state_scores_train = get_state_scores(model, eval_train)
+        state_scores_train = get_state_scores(model, eval_train)
     else:
-    	state_scores_train = get_state_scores2(model, eval_train)[1]
+        state_scores_train = get_state_scores2(model, eval_train)
 
     perplexity_train, acc_train, attn_train = evaluate_next_token(model, eval_train)
     meta_stats['train_acc'] = acc_train
@@ -72,21 +71,25 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
 
     items = []
     for i in range(len(val_data_manager.dataset)):
-    	curr_dict = {}
-    	curr_dict['split'] = 'val'
-    	curr_dict['src'] = val_data_manager.dataset[i].src
-    	curr_dict['trg'] = val_data_manager.dataset[i].trg
-    	curr_dict['beta'] = state_scores_val[i]
-    	curr_dict['alpha'] = attn_val[i]
+        curr_dict = {}
+        curr_dict['split'] = 'val'
+        curr_dict['src'] = val_data_manager.dataset[i].src
+        curr_dict['src_idx'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].src, additional_eos=False)
+        curr_dict['trg'] = val_data_manager.dataset[i].trg
+        curr_dict['trg_idx'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].trg, additional_eos=False)
+        curr_dict['beta'] = state_scores_val[i]
+        curr_dict['alpha'] = attn_val[i]
 
-    	items.append(curr_dict)
+        items.append(curr_dict)
 
     train_idxs_set = set(train_idxs)
-    for i in range(len(val_data_manager.dataset)):
+    for i in range(len(train_data_manager.dataset)):
       curr_dict = {}
       curr_dict['split'] = 'train'
-      curr_dict['src'] = val_data_manager.dataset[i].src
-      curr_dict['trg'] = val_data_manager.dataset[i].trg
+      curr_dict['src'] = train_data_manager.dataset[i].src
+      curr_dict['src_idx'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].src, additional_eos=False)
+      curr_dict['trg'] = train_data_manager.dataset[i].trg
+      curr_dict['trg_idx'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].trg, additional_eos=False)
       if i in train_idxs_set:
         curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
         curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
@@ -153,9 +156,9 @@ if __name__ == '__main__':
       metas[(eval_['name'], eval_['iteration'], key_)] = meta_stats[key_]
 
   merged_dicts = merge_dicts(dicts)
-  combined = {'metas': metas, 'data': merge_dicts}
+  combined = {'metas': metas, 'data': merged_dicts}
   with open(args.output_path, 'wb+') as f:
-    pkl.write(combined, f)
+    pkl.dump(combined, f)
 
 
 

@@ -145,20 +145,20 @@ def predict_beam(model, sentences, data_manager, k=5, max_length=100):
 	return all_sents
 
 
-def get_state_scores(model, dataset):
+def get_state_scores(model, dataset_manager):
     assert model.dropout == 0
     model.train()
-    val_data_iter = make_batch_iterator(dataset, 1)
+    val_data_iter = make_batch_iterator(dataset_manager, 1)
     all_state_scores = []
     for data_id, (source, target) in enumerate(val_data_iter):
         all_state_scores.append(model.get_state_scores(source, target)[0])
     return all_state_scores
 
 
-def get_state_scores2(model, dataset):
+def get_state_scores2(model, dataset_manager):
     assert model.dropout == 0
     model.train()
-    val_data_iter = make_batch_iterator(dataset, 1)
+    val_data_iter = make_batch_iterator(dataset_manager, 1)
     all_state_scores = []
     for data_id, (source, target) in enumerate(val_data_iter):
         all_state_scores.append(model.get_state_scores2(source, target)[0])
@@ -166,43 +166,40 @@ def get_state_scores2(model, dataset):
 
 
 def evaluate_next_token(model, data_manager, batch_size=64):
-	"""Compute token-level perplexity and accuracy metrics.
+    """Compute token-level perplexity and accuracy metrics.
 
-	Note that the perplexity here is over subwords, not words.
+    Note that the perplexity here is over subwords, not words.
 
-	This function is used for validation set evaluation at the end of each epoch
-	and should not be modified.
-	"""
-	model.eval()
-	total_cross_entropy = 0.0
-	total_predictions = 0
-	correct_predictions = 0
-	val_attentions = []
-	with torch.no_grad():
-		for source, target in make_batch_iterator(data_manager, batch_size):
-			encoder_output, encoder_mask, encoder_hidden = model.encode(source)
-			decoder_input, decoder_target = target[:-1], target[1:]
-			logits, decoder_hidden, attention_weights = model.decode(
-					decoder_input, encoder_hidden, encoder_output, encoder_mask)
-			for idx, attention_matrix in enumerate(attention_weights.permute((1, 0,  2))):
-				src_length = torch.sum(source[:, idx] != data_manager.pad_id).item()
-				tgt_length = torch.sum(decoder_target[:, idx] != data_manager.pad_id).item()
-				val_attentions.append(attention_matrix[:tgt_length, :src_length].cpu().numpy())
-			total_cross_entropy += F.cross_entropy(
-					logits.permute(1, 2, 0), decoder_target.permute(1, 0),
-					ignore_index=data_manager.pad_id, reduction="sum").item()
-			total_predictions += (decoder_target != data_manager.pad_id).sum().item()
-			# print(logits.argmax(2), decoder_target)
-			correct_predictions += (
-					(decoder_target != data_manager.pad_id) &
+    This function is used for validation set evaluation at the end of each epoch
+    and should not be modified.
+    """
+    model.eval()
+    total_cross_entropy = 0.0
+    total_predictions = 0
+    correct_predictions = 0
+    val_attentions = []
+    with torch.no_grad():
+        for source, target in make_batch_iterator(data_manager, batch_size):
+            encoder_output, encoder_mask, encoder_hidden = model.encode(source)
+            decoder_input, decoder_target = target[:-1], target[1:]
+            logits, decoder_hidden, attention_weights = model.decode(decoder_input, encoder_hidden, encoder_output, encoder_mask)
+            for idx, attention_matrix in enumerate(attention_weights.permute((1, 0,  2))):
+                src_length = torch.sum(source[:, idx] != data_manager.pad_id).item()
+                tgt_length = torch.sum(decoder_target[:, idx] != data_manager.pad_id).item()
+                val_attentions.append(attention_matrix[:tgt_length, :src_length].cpu().numpy())
+            total_cross_entropy += F.cross_entropy(
+            logits.permute(1, 2, 0), decoder_target.permute(1, 0), ignore_index=data_manager.pad_id, reduction="sum").item()
+            total_predictions += (decoder_target != data_manager.pad_id).sum().item()
+            # print(logits.argmax(2), decoder_target)
+            correct_predictions += ((decoder_target != data_manager.pad_id) &
 					(decoder_target == logits.argmax(2))).sum().item()
-	perplexity = math.exp(total_cross_entropy / total_predictions)
-	accuracy = 100 * correct_predictions / total_predictions
-	for val_attn in val_attentions:
-		for distr in val_attn:
-			assert np.abs(np.sum(distr) - 1) < epsilon
-
-	return perplexity, accuracy, val_attentions
+    perplexity = math.exp(total_cross_entropy / total_predictions)
+    accuracy = 100 * correct_predictions / total_predictions
+    for val_attn in val_attentions:
+        for distr in val_attn:
+            assert np.abs(np.sum(distr) - 1) < epsilon
+        
+    return perplexity, accuracy, val_attentions
 
 
 def predict_greedy(model, sentences, data_manager, max_length=100):

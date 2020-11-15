@@ -5,3 +5,4 @@ models/
 outputs/
 .DS_Store
 env/
+*.swp
