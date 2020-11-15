@@ -22,9 +22,19 @@ import os
 from load_datasets import load_dataset_by_name, StateManager
 from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2
 
-def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu):
+def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset):
     print('interpreting %s' % model_path)
     meta_stats = {}
+
+    training_data, validation_data, vocab = load_dataset_by_name(dataset)
+
+    pad_id = vocab.PieceToId("<pad>")
+    bos_id = vocab.PieceToId("<s>")
+    eos_id = vocab.PieceToId("</s>")
+
+    val_data_manager = StateManager(validation_data, vocab, bos_id, eos_id, pad_id, device, model_config)
+    train_data_manager = StateManager(training_data, vocab, bos_id, eos_id, pad_id, device, model_config)
+    VOCAB_SIZE = vocab.GetPieceSize()
 
     model = Seq2seq(hidden_dim=HIDDEN_DIM, vocab_size=VOCAB_SIZE, num_layers=NUM_LAYERS, dropout=0,
                     attn_lambda=attn_lambda, pad_id=pad_id, full_model=full_model, invasive_uniform=invasive_uniform).to(device)
@@ -116,18 +126,8 @@ if __name__ == '__main__':
   device = torch.device("cuda")
   print("Using device:", device)
 
-  training_data, validation_data, vocab = load_dataset_by_name(dataset)
-
-  pad_id = vocab.PieceToId("<pad>")
-  bos_id = vocab.PieceToId("<s>")
-  eos_id = vocab.PieceToId("</s>")
-
   with open(args.config, 'r') as f:
     model_config = json.load(f)
-
-  val_data_manager = StateManager(validation_data, vocab, bos_id, eos_id, pad_id, device, model_config)
-  train_data_manager = StateManager(training_data, vocab, bos_id, eos_id, pad_id, device, model_config)
-  VOCAB_SIZE = vocab.GetPieceSize()
 
   NUM_LAYERS = model_config['num_layers']
   DROPOUT = model_config['dropout']
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     model_path = ("models/%s/%s/" % (eval_['dataset'], config_name))
     assert os.path.exists(os.path.join(model_path, 'model' + str(eval_['iteration'])))
     items, meta_stats = dump_interpret(os.path.join(model_path, 'model' + str(eval_['iteration'])), 
-                      full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu)
+                      full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=eval_['dataset'])
     
     dicts[(eval_['name'], eval_['iteration'])] = items
     for key_ in meta_stats:
