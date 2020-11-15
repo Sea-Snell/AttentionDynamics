@@ -1,0 +1,6 @@
+{
+	"hidden_dim": 256,
+	"dropout": 0.5,
+	"num_layers": 2,
+	"batch_size": 16
+}
