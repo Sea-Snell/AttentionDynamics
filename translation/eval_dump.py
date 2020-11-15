@@ -116,7 +116,6 @@ if __name__ == '__main__':
   device = torch.device("cuda")
   print("Using device:", device)
 
-  dataset = args.dataset
   training_data, validation_data, vocab = load_dataset_by_name(dataset)
 
   pad_id = vocab.PieceToId("<pad>")
