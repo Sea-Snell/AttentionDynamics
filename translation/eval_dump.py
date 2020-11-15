@@ -36,7 +36,7 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     train_data_manager = StateManager(training_data, vocab, bos_id, eos_id, pad_id, device, model_config)
     VOCAB_SIZE = vocab.GetPieceSize()
 
-    model = Seq2seq(hidden_dim=HIDDEN_DIM, vocab_size=VOCAB_SIZE, num_layers=NUM_LAYERS, dropout=0,
+    model = Seq2seq(device=device, hidden_dim=HIDDEN_DIM, vocab_size=VOCAB_SIZE, num_layers=NUM_LAYERS, dropout=0,
                     attn_lambda=0.0, pad_id=pad_id, full_model=full_model, invasive_uniform=invasive_uniform).to(device)
     model.load_state_dict(torch.load(model_path))
 
