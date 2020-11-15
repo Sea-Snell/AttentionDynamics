@@ -111,9 +111,9 @@ def get_args():
 if __name__ == '__main__':
   args = get_args()
 
-  # assert torch.cuda.is_available()
-  device = torch.device("cpu")
-  # device = torch.device("cuda")
+  assert torch.cuda.is_available()
+  # device = torch.device("cpu")
+  device = torch.device("cuda")
   print("Using device:", device)
 
   dataset = args.dataset
