@@ -37,7 +37,7 @@ if __name__ == '__main__':
     coef = np.array(coef)
     if not os.path.exists('outputs/'):
         os.makedirs('outputs/')
-    with open('outputs/{dataset_name}_logistics_beta'.format(dataset_name=dataset), 'wb+') as f:
+    with open('outputs/{dataset_name}_logistics_beta.pkl'.format(dataset_name=dataset), 'wb+') as f:
         pkl.dump(coef, f)
 
 
