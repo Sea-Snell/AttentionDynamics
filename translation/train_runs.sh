@@ -8,18 +8,18 @@
 # python train_translation.py --epochs 20 --dataset iwslt14 --seed 13 --save_every 2000 --config configs/model.json
 # python train_translation.py --epochs 20 --dataset iwslt14 --seed 13 --save_every 2000 --uniform --config configs/model.json
 
-python train_translation.py --epochs 20 --dataset news_commentary_v14_en_nl --seed 20 --save_every 2000 --config configs/model.json
-python train_translation.py --epochs 20 --dataset news_commentary_v14_en_nl --seed 13 --save_every 2000 --config configs/model.json
-python train_translation.py --epochs 20 --dataset news_commentary_v14_en_nl --seed 13 --save_every 2000 --uniform --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_en_nl --seed 20 --save_every 2000 --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_en_nl --seed 13 --save_every 2000 --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_en_nl --seed 13 --save_every 2000 --uniform --config configs/model.json
 
 # python train_translation.py --epochs 20 --dataset news_commentary_v14_cs_fr --seed 20 --save_every 2000 --config configs/model.json
 # python train_translation.py --epochs 20 --dataset news_commentary_v14_cs_fr --seed 13 --save_every 2000 --config configs/model.json
 # python train_translation.py --epochs 20 --dataset news_commentary_v14_cs_fr --seed 13 --save_every 2000 --uniform --config configs/model.json
 
-python train_translation.py --epochs 20 --dataset news_commentary_v14_ar_id --seed 20 --save_every 2000 --config configs/model.json
-python train_translation.py --epochs 20 --dataset news_commentary_v14_ar_id --seed 13 --save_every 2000 --config configs/model.json
-python train_translation.py --epochs 20 --dataset news_commentary_v14_ar_id --seed 13 --save_every 2000 --uniform --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_ar_id --seed 20 --save_every 2000 --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_ar_id --seed 13 --save_every 2000 --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_ar_id --seed 13 --save_every 2000 --uniform --config configs/model.json
 
-python train_translation.py --epochs 20 --dataset news_commentary_v14_ar_hi --seed 20 --save_every 2000 --config configs/model.json
-python train_translation.py --epochs 20 --dataset news_commentary_v14_ar_hi --seed 13 --save_every 2000 --config configs/model.json
-python train_translation.py --epochs 20 --dataset news_commentary_v14_ar_hi --seed 13 --save_every 2000 --uniform --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_ar_hi --seed 20 --save_every 2000 --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_ar_hi --seed 13 --save_every 2000 --config configs/model.json
+python train_translation.py --epochs 40 --dataset news_commentary_v14_ar_hi --seed 13 --save_every 2000 --uniform --config configs/model.json
