@@ -14,7 +14,8 @@ if args.grid_type == 'embedding':
 
 dataset_name = args.dataset
 dict_f_path = 'outputs/{dataset_name}_logs.pkl'.format(dataset_name=dataset_name)
-dicts = pkl.load(open(dict_f_path, 'rb'))
+dat = pkl.load(open(dict_f_path, 'rb'))
+dicts = dat['data']
 
 if args.grid_type == 'embedding':
 	embed_beta = pkl.load(open('outputs/{dataset_name}embedding{embed_dim}translation.pkl'.format(embed_dim=args.embed_dim, dataset_name=dataset_name), 'rb'))
@@ -36,4 +37,4 @@ for d in dicts:
 	betas = np.array(betas)
 	d[key_name] = betas
 
-pkl.dump(dicts, open(dict_f_path, 'wb'))
+pkl.dump({'data': dicts, 'metas': dat['metas']}, open(dict_f_path, 'wb'))
