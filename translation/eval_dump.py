@@ -73,10 +73,10 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     for i in range(len(val_data_manager.dataset)):
         curr_dict = {}
         curr_dict['split'] = 'val'
-        curr_dict['src'] = val_data_manager.dataset[i].src
-        curr_dict['src_idx'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].src, additional_eos=False)
-        curr_dict['trg'] = val_data_manager.dataset[i].trg
-        curr_dict['trg_idx'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].trg, additional_eos=False)
+        # curr_dict['src'] = val_data_manager.dataset[i].src
+        curr_dict['src'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].src, additional_eos=False)
+        # curr_dict['trg'] = val_data_manager.dataset[i].trg
+        curr_dict['trg'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].trg, additional_eos=False)
         curr_dict['beta'] = state_scores_val[i]
         curr_dict['alpha'] = attn_val[i]
 
@@ -86,10 +86,10 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     for i in range(len(train_data_manager.dataset)):
       curr_dict = {}
       curr_dict['split'] = 'train'
-      curr_dict['src'] = train_data_manager.dataset[i].src
-      curr_dict['src_idx'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].src, additional_eos=False)
-      curr_dict['trg'] = train_data_manager.dataset[i].trg
-      curr_dict['trg_idx'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].trg, additional_eos=False)
+      # curr_dict['src'] = train_data_manager.dataset[i].src
+      curr_dict['src'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].src, additional_eos=False)
+      # curr_dict['trg'] = train_data_manager.dataset[i].trg
+      curr_dict['trg'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].trg, additional_eos=False)
       if i in train_idxs_set:
         curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
         curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
@@ -115,8 +115,7 @@ def merge_dicts(dicts):
 def get_args():
   parser = ArgumentParser()
   parser.add_argument('--config', type=str, default='configs/model.json')
-  parser.add_argument('--eval_list', type=str)
-  parser.add_argument('--output_path', type=str)
+  parser.add_argument('--dataset', type=str)
   parser.add_argument('--eval_bleu', default=False, action='store_true')
   args = parser.parse_args()
   return args
@@ -137,19 +136,22 @@ if __name__ == '__main__':
   HIDDEN_DIM = model_config['hidden_dim']
   batch_size = model_config['batch_size']
 
+  eval_list = 'configs/%s_log.json' % (args.dataset)
+  with open(eval_list, 'r') as f:
+    evals = json.load(f)
+
   dicts = {}
   metas = {}
-  with open(args.eval_list, 'r') as f:
-    evals = json.load(f)
   for eval_ in evals:
     if eval_['uniform']:
       config_name = 'h_dim=%d,dropout=%f,b_size=%d,seed=%d,uniform' % (HIDDEN_DIM, DROPOUT, batch_size, eval_['seed'])
     else:
       config_name = 'h_dim=%d,dropout=%f,b_size=%d,seed=%d,normal' % (HIDDEN_DIM, DROPOUT, batch_size, eval_['seed'])
-    model_path = ("models/%s/%s/" % (eval_['dataset'], config_name))
+    model_path = ("models/%s/%s/" % (args.dataset, config_name))
     assert os.path.exists(os.path.join(model_path, 'model' + str(eval_['iteration'])))
+    
     items, meta_stats = dump_interpret(os.path.join(model_path, 'model' + str(eval_['iteration'])), 
-                      full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=eval_['dataset'])
+                      full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=args.dataset)
     
     dicts[(eval_['name'], eval_['iteration'])] = items
     for key_ in meta_stats:
@@ -157,7 +159,9 @@ if __name__ == '__main__':
 
   merged_dicts = merge_dicts(dicts)
   combined = {'metas': metas, 'data': merged_dicts}
-  with open(args.output_path, 'wb+') as f:
+  if not os.path.exists('outputs/'):
+    os.makedirs('outputs/')
+  with open('outputs/%s_logs.pkl' % (args.dataset), 'wb+') as f:
     pkl.dump(combined, f)
 
 
