@@ -5,6 +5,7 @@ import torch
 from tqdm import tqdm
 import random
 from load_datasets import load_dataset_by_name, StateManager, make_batch, make_batch_iterator, sentence2ids_nopad
+import os
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 parser = ArgumentParser()
