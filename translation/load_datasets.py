@@ -15,10 +15,8 @@ class StateManager:
             self.device = device
             self.pad_id = pad_id
             self.vocab_size = self.vocab.GetPieceSize()
-            self.num_layers = config['num_layers']
-            self.dropout = config['dropout']
-            self.batch_size = config['batch_size']
-            self.hidden_dim = config['hidden_dim']
+            for key_ in config:
+            	setattr(self, key_, config[key_])
 
 def sentence2ids_nopad(state_manager, sentence: str, additional_eos: bool) -> List[int]:
         indices = [state_manager.bos_id] + state_manager.vocab.EncodeAsIds(sentence) + [state_manager.eos_id]

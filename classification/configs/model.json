@@ -1,0 +1,6 @@
+{
+	"hidden_dim": 256,
+	"intermediate_dim": 256,
+	"embed_dim": 300,
+	"batch_size": 32
+}
