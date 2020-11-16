@@ -1,4 +1,14 @@
 [
-	{"name": "normal_A", "iteration": 2000, "seed": 12, "uniform": false},
-	{"name": "normal_A", "iteration": 4000, "seed": 12, "uniform": false}
+	{"name": "normal_A", "iteration": 500, "seed": 20, "uniform": false},
+	{"name": "normal_A", "iteration": 1500, "seed": 20, "uniform": false},
+	{"name": "normal_A", "iteration": 3000, "seed": 20, "uniform": false},
+	{"name": "normal_A", "iteration": 3999, "seed": 20, "uniform": false},
+	{"name": "normal_B", "iteration": 500, "seed": 13, "uniform": false},
+	{"name": "normal_B", "iteration": 1500, "seed": 13, "uniform": false},
+	{"name": "normal_B", "iteration": 3000, "seed": 13, "uniform": false},
+	{"name": "normal_B", "iteration": 3999, "seed": 13, "uniform": false},
+	{"name": "uniform", "iteration": 500, "seed": 12, "uniform": true},
+	{"name": "uniform", "iteration": 1500, "seed": 12, "uniform": true},
+	{"name": "uniform", "iteration": 3000, "seed": 12, "uniform": true},
+	{"name": "uniform", "iteration": 3999, "seed": 12, "uniform": true}
 ]
