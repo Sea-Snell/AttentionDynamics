@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 import os
 from load_datasets import process_dataset, DataManager
 
-def train(model, model_path, train_data, test_data, steps, bsize, save_every, device, uniform):
+def train(model, model_path, train_data, test_data, steps, bsize, save_every, device, uniform, custom_saves):
     model.train()
 
     shuffle_every = len(train_data.X) // bsize
@@ -27,7 +27,7 @@ def train(model, model_path, train_data, test_data, steps, bsize, save_every, de
             train_data.X = [train_data.X[i] for i in ordering]
             train_data.Y = [train_data.Y[i] for i in ordering]
 
-        if step % save_every == 0:
+        if step % save_every == 0 or step in custom_saves:
             test_results = defaultdict(list)
 
             model.eval()
@@ -71,6 +71,7 @@ def get_args():
     parser.add_argument('--config', type=str, default='configs/model.json')
     parser.add_argument('--test_set_size', type=int, default=4000)
     parser.add_argument('--save_every', type=int, default=250)
+    parser.add_argument('--custom_saves', type=str, default=None, help='comma seperated list of iterations to checkpoint')
     args = parser.parse_args()
     return args
 
@@ -84,6 +85,7 @@ if __name__ == '__main__':
     steps = args.steps
     uniform = args.uniform
     save_every = args.save_every
+    custom_saves = set(map(int, args.save_every.split(',')))
 
     torch.manual_seed(seed)
     random.seed(seed)
@@ -107,7 +109,7 @@ if __name__ == '__main__':
 
     train_data_manager, test_data_manager = process_dataset(dataset, args.test_set_size)
     model = Model(train_data_manager.vocab_size, train_data_manager.tokenid2vector, EMBED_DIM, HIDDEN_DIM, INTERMEDIATE_DIM, device).to(device)
-    train(model, os.path.join(model_path, 'model'), train_data_manager, test_data_manager, steps, bsize, save_every, device, uniform)
+    train(model, os.path.join(model_path, 'model'), train_data_manager, test_data_manager, steps, bsize, save_every, device, uniform, custom_saves)
 
 
 
