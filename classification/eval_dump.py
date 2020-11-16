@@ -19,7 +19,7 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
     meta_stats = {}
     train_data, test_data = process_dataset(dataset, test_set_size)
 
-    model = Model(train_data_manager.vocab_size, train_data_manager.tokenid2vector, 
+    model = Model(train_data.vocab_size, train_data.tokenid2vector, 
                   model_config['embed_dim'], model_config['hidden_dim'], 
                   model_config['intermediate_dim'], device).to(device)
     model.load_state_dict(torch.load(model_path))
@@ -32,7 +32,7 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
     for i in range(0, len(test_data.X), bsize):
       result_dict = model(test_data.X[i:(i+bsize)], uniform=uniform, in_grad=False, pad_token=test_data.stoi['<pad>'])
       scores = result_dict['scores'].detach().cpu().numpy()
-      for x in range(bsize):
+      for x in range(len(result_dict['alpha'])):
         item = {}
         item['alpha'] = result_dict['alpha'][x]
         item['beta'] = result_dict['beta'][x]
@@ -52,7 +52,7 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
     for i in range(0, len(eval_train.X), bsize):
       result_dict = model(eval_train.X[i:(i+bsize)], uniform=uniform, in_grad=False, pad_token=train_data.stoi['<pad>'])
       scores = result_dict['scores'].detach().cpu().numpy()
-      for x in range(bsize):
+      for x in range(len(result_dict['alpha'])):
         item = {}
         item['alpha'] = result_dict['alpha'][x]
         item['beta'] = result_dict['beta'][x]
@@ -79,7 +79,7 @@ def merge_dicts(dicts):
   for key_ in dicts:
     for i, item in enumerate(dicts[key_]):
       if i >= len(master):
-        master.append({'src': item['src'], 'trg': item['trg'], 'split': item['split']})
+        master.append({'src': item['X'], 'trg': item['Y'], 'split': item['split']})
       master[i][tuple(list(key_) + ['alpha'])] = item['alpha']
       master[i][tuple(list(key_) + ['beta'])] = item['beta']
   return master
@@ -107,22 +107,22 @@ if __name__ == '__main__':
   EMBED_DIM = model_config['embed_dim']
   bsize = model_config['batch_size']
 
-  eval_list = '%s_log.json' % (args.dataset)
+  eval_list = 'configs/%s_log.json' % (args.dataset)
   with open(eval_list, 'r') as f:
     evals = json.load(f)
 
   dicts = {}
   metas = {}
   for eval_ in evals:
-    if uniform:
-        config_name = 'h_dim=%d,b_size=%d,seed=%d,uniform' % (HIDDEN_DIM, bsize, seed)
+    if eval_['uniform']:
+        config_name = 'h_dim=%d,b_size=%d,seed=%d,uniform' % (HIDDEN_DIM, bsize, eval_['seed'])
     else:
-        config_name = 'h_dim=%d,b_size=%d,seed=%d,normal' % (HIDDEN_DIM, bsize, seed)
-    model_path = ("models/%s/%s/" % (dataset, config_name))
+        config_name = 'h_dim=%d,b_size=%d,seed=%d,normal' % (HIDDEN_DIM, bsize, eval_['seed'])
+    model_path = ("models/%s/%s/" % (args.dataset, config_name))
     assert os.path.exists(os.path.join(model_path, 'model' + str(eval_['iteration'])))
 
     items, meta_stats = dump_interpret(os.path.join(model_path, 'model' + str(eval_['iteration'])), 
-                                      uniform=eval_['uniform'], dataset=args.dataset)
+                                      eval_['uniform'], args.dataset, args.test_set_size, model_config, device)
     
     dicts[(eval_['name'], eval_['iteration'])] = items
     for key_ in meta_stats:

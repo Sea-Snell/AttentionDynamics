@@ -28,7 +28,6 @@ def train(model, model_path, train_data, test_data, steps, bsize, save_every, de
             train_data.Y = [train_data.Y[i] for i in ordering]
 
         if step % save_every == 0:
-            val_results = defaultdict(list)
             test_results = defaultdict(list)
 
             model.eval()
@@ -50,6 +49,18 @@ def train(model, model_path, train_data, test_data, steps, bsize, save_every, de
         loss = loss_func(scores, torch.tensor(Y, dtype=torch.float32).to(device))
         loss.backward()
         optimizer.step()
+
+    test_results = defaultdict(list)
+    model.eval()
+    for i in range(0, len(test_data.X), bsize):
+        test_result_dict = model(test_data.X[i:(i+bsize)], uniform=uniform, in_grad=False, pad_token=test_data.stoi['<pad>'])
+        test_results['gold'].extend([1 if (t > 0.5) else 0 for t in test_data.Y[i:(i+bsize)]])
+        test_results['predicted'].extend([1 if (s > 0) else 0 for s in test_result_dict['scores'].detach().cpu().numpy()])
+
+    test_acc = np.mean([1 if a == b else 0 for a, b in zip(test_results['gold'], test_results['predicted'])])
+    print('accuracy on test set:', test_acc)
+
+    torch.save(model.state_dict(), model_path + str(step))
 
 def get_args():
     parser = ArgumentParser()

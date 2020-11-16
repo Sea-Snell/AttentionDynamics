@@ -1,5 +1,6 @@
 import json
 import pickle as pkl
+from collections import defaultdict
 
 class DataManager:
     def __init__(self, X, Y, tokenid2vector, vocab_size, stoi):

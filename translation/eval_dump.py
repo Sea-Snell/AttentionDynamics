@@ -136,7 +136,7 @@ if __name__ == '__main__':
   HIDDEN_DIM = model_config['hidden_dim']
   batch_size = model_config['batch_size']
 
-  eval_list = '%s_log.json' % (args.dataset)
+  eval_list = 'configs/%s_log.json' % (args.dataset)
   with open(eval_list, 'r') as f:
     evals = json.load(f)
 
