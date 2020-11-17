@@ -42,7 +42,6 @@ def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_on
 		model.train()
 		for i, (source, target) in enumerate(batch_iterator, start=1):
 
-			step_idx += 1
 			optimizer.zero_grad()
 			loss_dict = model.compute_loss(source, target)
 			loss = loss_dict['loss']
@@ -54,6 +53,7 @@ def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_on
 
 			loss.backward()
 			optimizer.step()
+			step_idx += 1
 		validation_perplexity, validation_accuracy, validation_attention = evaluate_next_token(model, val_data_manager)
 		print('validation accuracy: %f' % (validation_accuracy))
 		if validation_accuracy > best_accuracy:
