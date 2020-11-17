@@ -110,7 +110,6 @@ if __name__ == '__main__':
   eval_list = 'configs/%s_log.json' % (args.dataset)
   with open(eval_list, 'r') as f:
     evals = json.load(f)
-
   dicts = {}
   metas = {}
   for eval_ in evals:
