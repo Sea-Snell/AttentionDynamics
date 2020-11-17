@@ -2,10 +2,10 @@
 	{"name": "normal_A", "iteration": 10000, "seed": 20, "uniform": false},
 	{"name": "normal_A", "iteration": 50000, "seed": 20, "uniform": false},
 	{"name": "normal_A", "iteration": 98000, "seed": 20, "uniform": false},
-	{"name": "normal_A", "iteration": 10000, "seed": 13, "uniform": false},
-	{"name": "normal_A", "iteration": 50000, "seed": 13, "uniform": false},
-	{"name": "normal_A", "iteration": 98000, "seed": 13, "uniform": false},
-	{"name": "normal_A", "iteration": 10000, "seed": 12, "uniform": true},
-	{"name": "normal_A", "iteration": 50000, "seed": 12, "uniform": true},
-	{"name": "normal_A", "iteration": 98000, "seed": 12, "uniform": true}
+	{"name": "normal_B", "iteration": 10000, "seed": 13, "uniform": false},
+	{"name": "normal_B", "iteration": 50000, "seed": 13, "uniform": false},
+	{"name": "normal_B", "iteration": 98000, "seed": 13, "uniform": false},
+	{"name": "uniform", "iteration": 10000, "seed": 12, "uniform": true},
+	{"name": "uniform", "iteration": 50000, "seed": 12, "uniform": true},
+	{"name": "uniform", "iteration": 98000, "seed": 12, "uniform": true}
 ]
