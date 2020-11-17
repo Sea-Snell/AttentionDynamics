@@ -48,7 +48,7 @@ def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_on
 			loss = loss_dict['loss']
 			clf_loss, attn_loss = loss_dict['clf'], loss_dict['attn']
 
-			if step_idx % save_every == 0 or step in custom_saves:
+			if step_idx % save_every == 0 or step_idx in custom_saves:
 				print('step: %d, loss: %f' % (step_idx, clf_loss))
 				torch.save(model.state_dict(), model_file + str(step_idx))
 
