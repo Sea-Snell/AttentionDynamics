@@ -21,7 +21,7 @@ from typing import List
 from load_datasets import load_dataset_by_name, StateManager, make_batch, make_batch_iterator
 from eval_model import evaluate, evaluate_next_token
 
-def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_only=False):
+def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_only=False, custom_saves=set()):
 	"""Train the model and save its best checkpoint.
 
 	Model performance across epochs is evaluated using token-level accuracy on the
@@ -48,7 +48,7 @@ def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_on
 			loss = loss_dict['loss']
 			clf_loss, attn_loss = loss_dict['clf'], loss_dict['attn']
 
-			if step_idx % save_every == 0:
+			if step_idx % save_every == 0 or step in custom_saves:
 				print('step: %d, loss: %f' % (step_idx, clf_loss))
 				torch.save(model.state_dict(), model_file + str(step_idx))
 
@@ -71,6 +71,7 @@ def get_args():
 	parser.add_argument('--seed', type=int)
 	parser.add_argument('--save_every', type=int, default=2000)
 	parser.add_argument('--config', type=str, default='configs/model.json')
+	parser.add_argument('--custom_saves', type=str, default=None, help='comma seperated list of iterations to checkpoint')
 	args = parser.parse_args()
 	return args
 
@@ -104,6 +105,10 @@ if __name__ == '__main__':
 	save_every = args.save_every
 	num_epochs = args.epochs
 	seed = args.seed
+	if args.custom_saves is None:
+		custom_saves = set()
+	else:
+		custom_saves = set(map(int, args.custom_saves.split(',')))
 
 	torch.manual_seed(seed)
 	random.seed(seed)
@@ -120,7 +125,7 @@ if __name__ == '__main__':
 
 	model = Seq2seq(device=device, hidden_dim=HIDDEN_DIM, vocab_size=VOCAB_SIZE, num_layers=NUM_LAYERS, dropout=DROPOUT,
 									attn_lambda=0.0, pad_id=pad_id, full_model=True, invasive_uniform=args.uniform).to(device)
-	train(model, num_epochs, batch_size, os.path.join(model_path, 'model'))
+	train(model, num_epochs, batch_size, os.path.join(model_path, 'model'), custom_saves=custom_saves)
 
 	model.load_state_dict(torch.load(os.path.join(model_path, 'model')))
 	print("BLEU score with beam search ", evaluate(model, val_data_manager, method='beam'))

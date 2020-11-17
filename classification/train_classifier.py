@@ -85,7 +85,10 @@ if __name__ == '__main__':
     steps = args.steps
     uniform = args.uniform
     save_every = args.save_every
-    custom_saves = set(map(int, args.save_every.split(',')))
+    if args.custom_saves is None:
+        custom_saves = set()
+    else:
+        custom_saves = set(map(int, args.custom_saves.split(',')))
 
     torch.manual_seed(seed)
     random.seed(seed)
