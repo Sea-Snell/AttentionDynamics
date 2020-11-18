@@ -3,6 +3,7 @@ data/
 __pycache__/
 models/
 outputs/
+outputs_old/
 .DS_Store
 env/
 *.swp
