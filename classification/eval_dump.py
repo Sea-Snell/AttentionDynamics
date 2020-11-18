@@ -30,10 +30,12 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
     data_stats = []
     meta_stats = {}
     for i in range(0, len(test_data.X), bsize):
-      result_dict = model(test_data.X[i:(i+bsize)], uniform=uniform, in_grad=False, pad_token=test_data.stoi['<pad>'])
+      result_dict = model(test_data.X[i:(i+bsize)], uniform=uniform, in_grad=True, pad_token=test_data.stoi['<pad>'])
       scores = result_dict['scores'].detach().cpu().numpy()
+      gs = [g.detach().cpu().numpy()[:result_dict['lens'][i]]  for i, g in enumerate(model.influence(result_dict))]
       for x in range(len(result_dict['alpha'])):
         item = {}
+        item['grad'] = gs[x]
         item['alpha'] = result_dict['alpha'][x]
         item['beta'] = result_dict['beta'][x]
         item['Y'] = int(test_data.Y[i+x] > 0.5)
@@ -50,10 +52,12 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
 
     temp_train_stats = []
     for i in range(0, len(eval_train.X), bsize):
-      result_dict = model(eval_train.X[i:(i+bsize)], uniform=uniform, in_grad=False, pad_token=train_data.stoi['<pad>'])
+      result_dict = model(eval_train.X[i:(i+bsize)], uniform=uniform, in_grad=True, pad_token=train_data.stoi['<pad>'])
       scores = result_dict['scores'].detach().cpu().numpy()
+      gs = [g.detach().cpu().numpy()[:result_dict['lens'][i]]  for i, g in enumerate(model.influence(result_dict))]
       for x in range(len(result_dict['alpha'])):
         item = {}
+        item['grad'] = gs[x]
         item['alpha'] = result_dict['alpha'][x]
         item['beta'] = result_dict['beta'][x]
         item['Y'] = int(eval_train.Y[i+x] > 0.5)
@@ -82,6 +86,7 @@ def merge_dicts(dicts):
         master.append({'src': item['X'], 'trg': item['Y'], 'split': item['split']})
       master[i][tuple(list(key_) + ['alpha'])] = item['alpha']
       master[i][tuple(list(key_) + ['beta'])] = item['beta']
+      master[i][tuple(list(key_) + ['grad'])] = item['grad']
   return master
 
 

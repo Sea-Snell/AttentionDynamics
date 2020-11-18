@@ -265,3 +265,36 @@ def evaluate(model, data_manager, batch_size=64, method="greedy"):
 	return sacrebleu.corpus_bleu(predictions, [target_sentences]).score
 
 
+def get_grad_influence(model, data_manager):
+    assert model.dropout == 0
+    model.train()
+    val_data_iter = make_batch_iterator(data_manager, 1)
+    influences = []
+    for data_id, (source, target) in enumerate(val_data_iter):
+        src_emb = model.embedding(source).squeeze(1)
+        encoder_output, encoder_mask, encoder_hidden = model.encode(source)
+        decoder_input, decoder_target = target[:-1], target[1:]
+        logits, decoder_hidden, attention_weights = model.decode(
+            decoder_input, encoder_hidden, encoder_output, encoder_mask)
+        logits = logits.squeeze()
+        decoder_target = decoder_target.squeeze()
+        tgt_length = torch.sum(decoder_target.squeeze() != data_manager.pad_id).item()
+
+        model.embedding(source).squeeze(1)
+
+        grads = []
+        for i in range(tgt_length):
+            # negative log loss
+            (-1 * logits[i][decoder_target[i]]).backward(retain_graph=(i != tgt_length - 1))
+            grad = model.grads['source_emb'].clone().detach().squeeze(1)
+            grads.append(grad.unsqueeze(0))
+        grads = torch.cat(grads, dim=0)
+        # increase in the grad direction will increase the loss
+        # dot product with grad means: the loss increase if the src_embedding goes from zero to the current position
+        # therefore, the less of src_emb dot grad, the more the occurrence of this source token contributes to the occurence of the target
+        # a positive score in the influence tensor indicates a positive influence
+        influence = -torch.einsum("tsh,sh->ts", [grads, src_emb]).detach().cpu().numpy()
+        influences.append(influence)
+    return influences
+
+

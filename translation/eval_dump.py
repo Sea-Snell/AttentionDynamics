@@ -20,7 +20,7 @@ import numpy as np
 import pickle as pkl
 import os
 from load_datasets import load_dataset_by_name, StateManager, sentence2ids_nopad
-from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2
+from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2, get_grad_influence
 
 def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset):
     print('interpreting %s' % model_path)
@@ -44,6 +44,8 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
         state_scores_val = get_state_scores(model, val_data_manager)
     else:
         state_scores_val = get_state_scores2(model, val_data_manager)
+    grad_influence_val = get_grad_influence(model, val_data_manager)
+
     perplexity_val, acc_val, attn_val = evaluate_next_token(model, val_data_manager)
     meta_stats['val_acc'] = acc_val
     meta_stats['val_perplexity'] = perplexity_val
@@ -60,6 +62,7 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
         state_scores_train = get_state_scores(model, eval_train)
     else:
         state_scores_train = get_state_scores2(model, eval_train)
+    grad_influence_train = get_grad_influence(model, eval_train)
 
     perplexity_train, acc_train, attn_train = evaluate_next_token(model, eval_train)
     meta_stats['train_acc'] = acc_train
@@ -73,12 +76,11 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     for i in range(len(val_data_manager.dataset)):
         curr_dict = {}
         curr_dict['split'] = 'val'
-        # curr_dict['src'] = val_data_manager.dataset[i].src
         curr_dict['src'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].src, additional_eos=False)
-        # curr_dict['trg'] = val_data_manager.dataset[i].trg
         curr_dict['trg'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].trg, additional_eos=False)
         curr_dict['beta'] = state_scores_val[i]
         curr_dict['alpha'] = attn_val[i]
+        curr_dict['grad'] = grad_influence_val[i]
 
         items.append(curr_dict)
 
@@ -86,16 +88,16 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     for i in range(len(train_data_manager.dataset)):
       curr_dict = {}
       curr_dict['split'] = 'train'
-      # curr_dict['src'] = train_data_manager.dataset[i].src
       curr_dict['src'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].src, additional_eos=False)
-      # curr_dict['trg'] = train_data_manager.dataset[i].trg
       curr_dict['trg'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].trg, additional_eos=False)
       if i in train_idxs_set:
         curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
         curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
+        curr_dict['grad'] = grad_influence_train[inverse_train_idx_map[i]]
       else:
         curr_dict['beta'] = None
         curr_dict['alpha'] = None
+        curr_dict['grad'] = None
 
       items.append(curr_dict)
     return items, meta_stats
@@ -108,6 +110,7 @@ def merge_dicts(dicts):
         master.append({'src': item['src'], 'trg': item['trg'], 'split': item['split']})
       master[i][tuple(list(key_) + ['alpha'])] = item['alpha']
       master[i][tuple(list(key_) + ['beta'])] = item['beta']
+      master[i][tuple(list(key_) + ['grad'])] = item['grad']
   return master
 
 
