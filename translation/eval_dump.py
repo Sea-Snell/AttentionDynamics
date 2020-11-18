@@ -22,7 +22,7 @@ import os
 from load_datasets import load_dataset_by_name, StateManager, sentence2ids_nopad
 from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2, get_grad_influence
 
-def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset):
+def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset, include_train_subset):
     print('interpreting %s' % model_path)
     meta_stats = {}
 
@@ -51,26 +51,27 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
     meta_stats['val_perplexity'] = perplexity_val
 
     if eval_bleu:
-      bleu_val = evaluate(model, val_data_manager.dataset, method='beam')
+      bleu_val = evaluate(model, val_data_manager, method='beam')
       meta_stats['val_bleu'] = bleu_val
 
-    random.seed(1)
-    train_idxs = random.sample(range(len(train_data_manager.dataset)), k=len(val_data_manager.dataset))
-    inverse_train_idx_map = {train_idxs[i]: i for i in range(len(train_idxs))}
-    eval_train = StateManager([train_data_manager.dataset[idx] for idx in train_idxs], vocab, bos_id, eos_id, pad_id, device, model_config)
-    if not full_model:
-        state_scores_train = get_state_scores(model, eval_train)
-    else:
-        state_scores_train = get_state_scores2(model, eval_train)
-    grad_influence_train = get_grad_influence(model, eval_train)
+    if include_train_subset:
+      random.seed(1)
+      train_idxs = random.sample(range(len(train_data_manager.dataset)), k=len(val_data_manager.dataset))
+      inverse_train_idx_map = {train_idxs[i]: i for i in range(len(train_idxs))}
+      eval_train = StateManager([train_data_manager.dataset[idx] for idx in train_idxs], vocab, bos_id, eos_id, pad_id, device, model_config)
+      if not full_model:
+          state_scores_train = get_state_scores(model, eval_train)
+      else:
+          state_scores_train = get_state_scores2(model, eval_train)
+      grad_influence_train = get_grad_influence(model, eval_train)
 
-    perplexity_train, acc_train, attn_train = evaluate_next_token(model, eval_train)
-    meta_stats['train_acc'] = acc_train
-    meta_stats['train_perplexity'] = perplexity_train
+      perplexity_train, acc_train, attn_train = evaluate_next_token(model, eval_train)
+      meta_stats['train_acc'] = acc_train
+      meta_stats['train_perplexity'] = perplexity_train
 
-    if eval_bleu:
-      bleu_train = evaluate(model, eval_train, method='beam')
-      meta_stats['train_bleu'] = bleu_train
+      if eval_bleu:
+        bleu_train = evaluate(model, eval_train, method='beam')
+        meta_stats['train_bleu'] = bleu_train
 
     items = []
     for i in range(len(val_data_manager.dataset)):
@@ -84,22 +85,24 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset)
 
         items.append(curr_dict)
 
-    train_idxs_set = set(train_idxs)
-    for i in range(len(train_data_manager.dataset)):
-      curr_dict = {}
-      curr_dict['split'] = 'train'
-      curr_dict['src'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].src, additional_eos=False)
-      curr_dict['trg'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].trg, additional_eos=False)
-      if i in train_idxs_set:
-        curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
-        curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
-        curr_dict['grad'] = grad_influence_train[inverse_train_idx_map[i]]
-      else:
-        curr_dict['beta'] = None
-        curr_dict['alpha'] = None
-        curr_dict['grad'] = None
+    if include_train_subset:
+      train_idxs_set = set(train_idxs)
+      for i in range(len(train_data_manager.dataset)):
+        curr_dict = {}
+        curr_dict['split'] = 'train'
+        curr_dict['src'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].src, additional_eos=False)
+        curr_dict['trg'] = sentence2ids_nopad(train_data_manager, train_data_manager.dataset[i].trg, additional_eos=False)
+        if i in train_idxs_set:
+          curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
+          curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
+          curr_dict['grad'] = grad_influence_train[inverse_train_idx_map[i]]
+        else:
+          curr_dict['beta'] = None
+          curr_dict['alpha'] = None
+          curr_dict['grad'] = None
 
-      items.append(curr_dict)
+        items.append(curr_dict)
+
     return items, meta_stats
 
 def merge_dicts(dicts):
@@ -120,6 +123,7 @@ def get_args():
   parser.add_argument('--config', type=str, default='configs/model.json')
   parser.add_argument('--dataset', type=str)
   parser.add_argument('--eval_bleu', default=False, action='store_true')
+  parser.add_argument('--include_train_subset', default=False, action='store_true')
   args = parser.parse_args()
   return args
 
@@ -138,6 +142,7 @@ if __name__ == '__main__':
   DROPOUT = model_config['dropout']
   HIDDEN_DIM = model_config['hidden_dim']
   batch_size = model_config['batch_size']
+  include_train_subset = args.include_train_subset
 
   eval_list = 'configs/%s_log.json' % (args.dataset)
   with open(eval_list, 'r') as f:
@@ -154,7 +159,8 @@ if __name__ == '__main__':
     assert os.path.exists(os.path.join(model_path, 'model' + str(eval_['iteration'])))
     
     items, meta_stats = dump_interpret(os.path.join(model_path, 'model' + str(eval_['iteration'])), 
-                      full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=args.dataset)
+                      full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=args.dataset,
+                      include_train_subset=include_train_subset)
     
     dicts[(eval_['name'], eval_['iteration'])] = items
     for key_ in meta_stats:

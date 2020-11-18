@@ -20,8 +20,6 @@
 	{"name": "normal_A", "iteration": 70000, "seed": 20, "uniform": false},
 	{"name": "normal_A", "iteration": 80000, "seed": 20, "uniform": false},
 	{"name": "normal_A", "iteration": 90000, "seed": 20, "uniform": false},
-	{"name": "normal_A", "iteration": 100000, "seed": 20, "uniform": false},
-	{"name": "normal_A", "iteration": 130000, "seed": 20, "uniform": false},
 	{"name": "normal_B", "iteration": 0, "seed": 13, "uniform": false},
 	{"name": "normal_B", "iteration": 50, "seed": 13, "uniform": false},
 	{"name": "normal_B", "iteration": 100, "seed": 13, "uniform": false},
@@ -43,8 +41,6 @@
 	{"name": "normal_B", "iteration": 70000, "seed": 13, "uniform": false},
 	{"name": "normal_B", "iteration": 80000, "seed": 13, "uniform": false},
 	{"name": "normal_B", "iteration": 90000, "seed": 13, "uniform": false},
-	{"name": "normal_B", "iteration": 100000, "seed": 13, "uniform": false},
-	{"name": "normal_B", "iteration": 130000, "seed": 13, "uniform": false},
 	{"name": "uniform", "iteration": 0, "seed": 12, "uniform": true},
 	{"name": "uniform", "iteration": 50, "seed": 12, "uniform": true},
 	{"name": "uniform", "iteration": 100, "seed": 12, "uniform": true},
@@ -65,7 +61,5 @@
 	{"name": "uniform", "iteration": 60000, "seed": 12, "uniform": true},
 	{"name": "uniform", "iteration": 70000, "seed": 12, "uniform": true},
 	{"name": "uniform", "iteration": 80000, "seed": 12, "uniform": true},
-	{"name": "uniform", "iteration": 90000, "seed": 12, "uniform": true},
-	{"name": "uniform", "iteration": 100000, "seed": 12, "uniform": true},
-	{"name": "uniform", "iteration": 130000, "seed": 12, "uniform": true}
+	{"name": "uniform", "iteration": 90000, "seed": 12, "uniform": true}
 ]
