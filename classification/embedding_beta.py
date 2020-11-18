@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     if not os.path.exists('outputs/'):
         os.makedirs('outputs/')
-    f_path = os.path.join('outputs', '{dataset_name}embedding{embed_dim}translation.pkl'.format(dataset_name=dataset, embed_dim=embed_dim))
+    f_path = os.path.join('outputs', '{dataset_name}embedding{embed_dim}beta.pkl'.format(dataset_name=dataset, embed_dim=embed_dim))
     pkl.dump(best_beta, open(f_path, 'wb'))
     print('best loss %.3f from epoch %d saved' % (best_loss, best_epoch))
 
