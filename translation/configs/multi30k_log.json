@@ -58,5 +58,5 @@
 	{"name": "uniform", "iteration": 24000, "seed": 12, "uniform": true},
 	{"name": "uniform", "iteration": 28000, "seed": 12, "uniform": true},
 	{"name": "uniform", "iteration": 32000, "seed": 12, "uniform": true},
-	{"name": "uniform", "iteration": 36000, "seed": 12, "uniform": true},
+	{"name": "uniform", "iteration": 36000, "seed": 12, "uniform": true}
 ]
