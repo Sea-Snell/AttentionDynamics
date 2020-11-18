@@ -23,7 +23,7 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
                   model_config['embed_dim'], model_config['hidden_dim'], 
                   model_config['intermediate_dim'], device).to(device)
     model.load_state_dict(torch.load(model_path))
-    model.eval()
+    model.train()
 
     bsize = model_config['batch_size']
 
@@ -70,7 +70,7 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
       if i in train_idxs_set:
         data_stats.append(temp_train_stats[inverse_train_idx_map[i]])
       else:
-        data_stats.append({'alpha': None, 'beta': None, 'predicted': None, 'X': train_data.X[i], 'Y': train_data.Y[i], 'split': 'train'})
+        data_stats.append({'alpha': None, 'beta': None, 'predicted': None, 'X': train_data.X[i], 'Y': train_data.Y[i], 'split': 'train', 'grad': None})
 
     test_acc = np.mean([1 if item['predicted'] == item['Y'] else 0 for item in data_stats if item['split'] == 'val'])
     train_acc = np.mean([1 if item['predicted'] == item['Y'] else 0 for item in data_stats if item['split'] == 'train' and item['predicted'] is not None])

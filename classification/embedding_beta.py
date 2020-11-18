@@ -15,6 +15,7 @@ def get_args():
     parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--embed_dim', type=int, default=256)
     parser.add_argument('--test_set_size', type=int, default=4000)
+    parser.add_argument('--lr', type=float, default=0.0002)
     args = parser.parse_args()
     return args
 
@@ -77,7 +78,7 @@ if __name__ == '__main__':
     print(total_loss)
 
     # optim = torch.optim.SGD(lr=5e-3, params=model.parameters())
-    optim = torch.optim.Adam(params=model.parameters(), lr=0.0003)
+    optim = torch.optim.Adam(params=model.parameters(), lr=args.lr)
     best_beta = model.obtain_beta()
     best_epoch = 0
     for epoch in range(num_epochs):
