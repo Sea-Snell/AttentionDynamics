@@ -312,10 +312,10 @@ def get_grad_influence2(model, data_manager, bsize):
         for i in range(decoder_target.shape[0]):
             grad = model.influence(-logits[i, :, decoder_target[i]], retain_graph=(i != decoder_target.shape[0] - 1))
             grads.append(grad)
-        grads = torch.cat(grads, dim=0).permute(2, 0, 1)
+        grads = torch.stack(grads, dim=0).permute(2, 0, 1)
         for idx in range(len(grads)):
         	tgt_length = torch.sum(decoder_target[:, idx].squeeze() != data_manager.pad_id).item()
-        	src_length = torch.sum(source[:, idx].squeeze() != source.pad_id).item()
+        	src_length = torch.sum(source[:, idx].squeeze() != data_manager.pad_id).item()
         	influences.append(grads[:tgt_length, :src_length])
     return influences
 

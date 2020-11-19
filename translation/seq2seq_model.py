@@ -63,15 +63,15 @@ class Seq2seq(nn.Module):
 		encoder_mask = (source == self.pad_id)
 		source_emb = self.embedding(source)
 		if in_grad:
-			del self.inputs
-			self.inputs = torch.autograd.Variable(torch.ones(source_emb.size()).to(self.device), requires_grad=True)
-			source_emb = (source_emb.permute(2, 0, 1) * self.inputs).permute(1, 2, 0)
+                    del self.inputs
+                    self.inputs = torch.autograd.Variable(torch.ones(source.size()).to(self.device), requires_grad=True)
+                    source_emb = (source_emb.permute(2, 0, 1) * self.inputs).permute(1, 2, 0)
 		else:
-			del self.inputs
-			self.inputs = None
+                    del self.inputs
+                    self.inputs = None
 
 		if self.training:
-			source_emb.register_hook(self.save_grad('source_emb'))
+                    source_emb.register_hook(self.save_grad('source_emb'))
 		packed_input = pack_padded_sequence(source_emb, lengths, enforce_sorted=False)
 		packed_output, (h_n, c_n) = self.encoder_lstm(packed_input)
 		encoder_output, _ = pad_packed_sequence(packed_output)

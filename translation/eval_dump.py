@@ -20,7 +20,7 @@ import numpy as np
 import pickle as pkl
 import os
 from load_datasets import load_dataset_by_name, StateManager, sentence2ids_nopad
-from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2, get_grad_influence
+from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2, get_grad_influence2
 
 def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset, include_train_subset, grad_bsize):
     print('interpreting %s' % model_path)
