@@ -316,7 +316,7 @@ def get_grad_influence2(model, data_manager, bsize):
         for idx in range(len(grads)):
         	tgt_length = torch.sum(decoder_target[:, idx].squeeze() != data_manager.pad_id).item()
         	src_length = torch.sum(source[:, idx].squeeze() != data_manager.pad_id).item()
-        	influences.append(grads[:tgt_length, :src_length].clone().detach().cpu().numpy())
+        	influences.append(grads[idx][:tgt_length, :src_length].clone().detach().cpu().numpy())
     return influences
 
 
