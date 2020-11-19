@@ -79,9 +79,9 @@ class Model(nn.Module):
             'lens': lengths
         }
 
-    def influence(self, return_dict):
+    def influence(self, logits):
         self.zero_grad()
-        torch.sum(return_dict['scores']).backward()
+        torch.sum(logits).backward()
         grad = torch.tensor(self.inputs.grad)
         self.zero_grad()
         return grad
