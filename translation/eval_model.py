@@ -310,7 +310,7 @@ def get_grad_influence2(model, data_manager, bsize):
 
         grads = []
         for i in range(decoder_target.shape[0]):
-            grad = model.influence(-logits[i, :, decoder_target[i]], retain_graph=(i != decoder_target.shape[0] - 1))
+            grad = model.influence(-logits[i, list(range(len(decoder_target[i]))), decoder_target[i]], retain_graph=(i != decoder_target.shape[0] - 1))
             grads.append(grad)
         grads = torch.stack(grads, dim=0).permute(2, 0, 1)
         for idx in range(len(grads)):
