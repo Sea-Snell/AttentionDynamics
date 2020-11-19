@@ -4,6 +4,8 @@ __pycache__/
 models/
 outputs/
 outputs_old/
+outputs_old_multi30k/
 .DS_Store
 env/
 *.swp
+*.pkl

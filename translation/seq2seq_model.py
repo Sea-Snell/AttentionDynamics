@@ -41,6 +41,7 @@ class Seq2seq(nn.Module):
 		self.full_model = full_model
 		self.invasive_uniform = invasive_uniform
 		self.device = device
+		self.inputs = None
 
 
 
@@ -57,10 +58,18 @@ class Seq2seq(nn.Module):
 		assert batch_first_avg_direction.shape == (batch_size, self.num_layers, self.hidden_dim)
 		return batch_first_avg_direction.transpose(1, 0).contiguous()
 
-	def encode(self, source):
+	def encode(self, source, in_grad=False):
 		lengths = torch.sum(source != self.pad_id, axis=0).cpu()
 		encoder_mask = (source == self.pad_id)
 		source_emb = self.embedding(source)
+		if in_grad:
+        del self.inputs
+        self.inputs = torch.autograd.Variable(torch.ones(source_emb.size()).to(self.device), requires_grad=True)
+        source_emb = (source_emb.permute(2, 0, 1) * self.inputs).permute(1, 2, 0)
+    else:
+        del self.inputs
+        self.inputs = None
+
 		if self.training:
 		    source_emb.register_hook(self.save_grad('source_emb'))
 		packed_input = pack_padded_sequence(source_emb, lengths, enforce_sorted=False)
@@ -224,6 +233,14 @@ class Seq2seq(nn.Module):
 			state_scores = np.array(state_scores)
 			batch_state_scores.append(state_scores)
 		return batch_state_scores
+
+
+	def influence(self, logits, retain_graph):
+        self.zero_grad()
+        torch.sum(logits).backward(retain_graph=retain_graph)
+        grad = torch.tensor(self.inputs.grad)
+        self.zero_grad()
+        return grad
 
 
 

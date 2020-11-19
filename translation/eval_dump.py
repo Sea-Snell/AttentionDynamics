@@ -22,7 +22,7 @@ import os
 from load_datasets import load_dataset_by_name, StateManager, sentence2ids_nopad
 from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2, get_grad_influence
 
-def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset, include_train_subset):
+def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset, include_train_subset, grad_bsize):
     print('interpreting %s' % model_path)
     meta_stats = {}
 
@@ -44,7 +44,7 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset,
         state_scores_val = get_state_scores(model, val_data_manager)
     else:
         state_scores_val = get_state_scores2(model, val_data_manager)
-    grad_influence_val = get_grad_influence(model, val_data_manager)
+    grad_influence_val = get_grad_influence2(model, val_data_manager, grad_bsize)
 
     perplexity_val, acc_val, attn_val = evaluate_next_token(model, val_data_manager)
     meta_stats['val_acc'] = acc_val
@@ -63,7 +63,7 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset,
           state_scores_train = get_state_scores(model, eval_train)
       else:
           state_scores_train = get_state_scores2(model, eval_train)
-      grad_influence_train = get_grad_influence(model, eval_train)
+      grad_influence_train = get_grad_influence2(model, eval_train, grad_bsize)
 
       perplexity_train, acc_train, attn_train = evaluate_next_token(model, eval_train)
       meta_stats['train_acc'] = acc_train
@@ -124,6 +124,7 @@ def get_args():
   parser.add_argument('--dataset', type=str)
   parser.add_argument('--eval_bleu', default=False, action='store_true')
   parser.add_argument('--include_train_subset', default=False, action='store_true')
+  parser.add_argument('--grad_bsize', type=int, default=16)
   args = parser.parse_args()
   return args
 
@@ -143,6 +144,7 @@ if __name__ == '__main__':
   HIDDEN_DIM = model_config['hidden_dim']
   batch_size = model_config['batch_size']
   include_train_subset = args.include_train_subset
+  grad_bsize = args.grad_bsize
 
   eval_list = 'configs/%s_log.json' % (args.dataset)
   with open(eval_list, 'r') as f:
@@ -160,7 +162,7 @@ if __name__ == '__main__':
     
     items, meta_stats = dump_interpret(os.path.join(model_path, 'model' + str(eval_['iteration'])), 
                       full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=args.dataset,
-                      include_train_subset=include_train_subset)
+                      include_train_subset=include_train_subset, grad_bsize=grad_bsize)
     
     dicts[(eval_['name'], eval_['iteration'])] = items
     for key_ in meta_stats:

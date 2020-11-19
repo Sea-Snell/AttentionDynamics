@@ -297,4 +297,26 @@ def get_grad_influence(model, data_manager):
         influences.append(influence)
     return influences
 
+def get_grad_influence2(model, data_manager, bsize):
+    assert model.dropout == 0
+    model.train()
+    val_data_iter = make_batch_iterator(data_manager, bsize)
+    influences = []
+    for data_id, (source, target) in enumerate(val_data_iter):
+        encoder_output, encoder_mask, encoder_hidden = model.encode(source, in_grad=True)
+        decoder_input, decoder_target = target[:-1], target[1:]
+        logits, decoder_hidden, attention_weights = model.decode(
+            decoder_input, encoder_hidden, encoder_output, encoder_mask)
+
+        grads = []
+        for i in range(decoder_target.shape[0]):
+            grad = model.influence(-logits[i, :, decoder_target[i]], retain_graph=(i != decoder_target.shape[0] - 1))
+            grads.append(grad)
+        grads = torch.cat(grads, dim=0).permute(2, 0, 1)
+        for idx in range(len(grads)):
+        	tgt_length = torch.sum(decoder_target[:, idx].squeeze() != data_manager.pad_id).item()
+        	src_length = torch.sum(source[:, idx].squeeze() != source.pad_id).item()
+        	influences.append(grads[:tgt_length, :src_length])
+    return influences
+
 
