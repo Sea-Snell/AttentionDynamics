@@ -22,7 +22,7 @@ import os
 from load_datasets import load_dataset_by_name, StateManager, sentence2ids_nopad
 from eval_model import evaluate, evaluate_next_token, get_state_scores, get_state_scores2, get_grad_influence2
 
-def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset, include_train_subset, grad_bsize):
+def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset, include_train_subset, grad_bsize, calculate_grad):
     print('interpreting %s' % model_path)
     meta_stats = {}
 
@@ -44,7 +44,8 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset,
         state_scores_val = get_state_scores(model, val_data_manager)
     else:
         state_scores_val = get_state_scores2(model, val_data_manager)
-    grad_influence_val = get_grad_influence2(model, val_data_manager, grad_bsize)
+    if calculate_grad:
+      grad_influence_val = get_grad_influence2(model, val_data_manager, grad_bsize)
 
     perplexity_val, acc_val, attn_val = evaluate_next_token(model, val_data_manager)
     meta_stats['val_acc'] = acc_val
@@ -63,7 +64,8 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset,
           state_scores_train = get_state_scores(model, eval_train)
       else:
           state_scores_train = get_state_scores2(model, eval_train)
-      grad_influence_train = get_grad_influence2(model, eval_train, grad_bsize)
+      if calculate_grad:
+        grad_influence_train = get_grad_influence2(model, eval_train, grad_bsize)
 
       perplexity_train, acc_train, attn_train = evaluate_next_token(model, eval_train)
       meta_stats['train_acc'] = acc_train
@@ -81,7 +83,10 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset,
         curr_dict['trg'] = sentence2ids_nopad(val_data_manager, val_data_manager.dataset[i].trg, additional_eos=False)
         curr_dict['beta'] = state_scores_val[i]
         curr_dict['alpha'] = attn_val[i]
-        curr_dict['grad'] = grad_influence_val[i]
+        if calculate_grad:
+          curr_dict['grad'] = grad_influence_val[i]
+        else:
+          curr_dict['grad'] = []
 
         items.append(curr_dict)
 
@@ -95,7 +100,10 @@ def dump_interpret(model_path, full_model, invasive_uniform, eval_bleu, dataset,
         if i in train_idxs_set:
           curr_dict['beta'] = state_scores_train[inverse_train_idx_map[i]]
           curr_dict['alpha'] = attn_train[inverse_train_idx_map[i]]
-          curr_dict['grad'] = grad_influence_train[inverse_train_idx_map[i]]
+          if calculate_grad:
+            curr_dict['grad'] = grad_influence_train[inverse_train_idx_map[i]]
+          else:
+            curr_dict['grad'] = []
         else:
           curr_dict['beta'] = None
           curr_dict['alpha'] = None
@@ -162,7 +170,7 @@ if __name__ == '__main__':
     
     items, meta_stats = dump_interpret(os.path.join(model_path, 'model' + str(eval_['iteration'])), 
                       full_model=True, invasive_uniform=eval_['uniform'], eval_bleu=args.eval_bleu, dataset=args.dataset,
-                      include_train_subset=include_train_subset, grad_bsize=grad_bsize)
+                      include_train_subset=include_train_subset, grad_bsize=grad_bsize, calculate_grad=eval_['calculate_grad'])
     
     dicts[(eval_['name'], eval_['iteration'])] = items
     for key_ in meta_stats:

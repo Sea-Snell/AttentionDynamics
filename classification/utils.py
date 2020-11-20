@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from scipy import stats
+import pickle as pkl
 
 num_random = 1
 
@@ -75,3 +76,129 @@ class SpearmanRankCorr(Metric):
     def eval_corr_single(self, alpha, beta):
         corr, _ = stats.spearmanr(alpha, beta)
         return corr
+
+
+class KendallTauCorr(Metric):
+    def __init__(self):
+        name = 'kendall tau'
+        super().__init__(name)
+
+    def eval_corr_single(self, alpha, beta):
+        corr, _ = stats.kendalltau(alpha, beta)
+        return corr
+
+
+
+
+def passing_idx(A1s, A2):
+    for i in range(len(A1s)):
+        if A1s[i] > A2:
+            return i
+    return None
+
+def corrs_iter(dicts, key1, keys2, corr_metric, reverse=False):
+    corrs = []
+    baselines = []
+    for key2 in keys2:
+        if reverse:
+                vals = corr_metric.eval_corr(dicts, key2, key1)
+        else:
+            vals = corr_metric.eval_corr(dicts, key1, key2)
+        corrs.append(vals['correlation'])
+        baselines.append(vals['baseline'])
+    return corrs, baselines
+
+def acc_iter(metas, keys):
+    accs = []
+    for key in keys:
+        accs.append(metas[key])
+    return accs
+
+def flip_betas(dicts):
+    for item in dicts:
+        for key in item:
+            if type(key) is tuple and key[2] == 'beta' and item[key] is not None:
+                item[key] = item[key] * (2 * item['trg'] - 1)
+
+def flip_grads(dicts):
+    for item in dicts:
+        for key in item:
+            if type(key) is tuple and key[2] == 'grad' and item[key] is not None:
+                item[key] = -item[key]
+
+def max_corr(dicts, key1, keys2, metric, reverse=False):
+    return max(corrs_iter(dicts, key1, keys2, metric, reverse=reverse)[0])
+
+def impute_beta(dicts, beta_vector, key_name):
+    for item in dicts:
+        beta = []
+        for tok in item['src']:
+            beta.append(beta_vector[tok] * (2 * item['trg'] - 1))
+        item[key_name] = beta
+
+def is_valid_dict(dict_):
+    for k, v in dict_.items():
+        if v is None:
+            return False
+    return True
+
+def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_run_name, px_name, performance_name):
+    all_dicts = dat['data']
+    dicts = [d for d in all_dicts if d['split'] == split and is_valid_dict(d)]
+    iterations = sorted(list(set([key[1] for key in dat['metas']])))
+    normalA_accs = acc_iter(dat['metas'], [(gold_run_name, iter_, performance_name) for iter_ in iterations])
+    normalA_iter = iterations[np.argmax(normalA_accs)]
+    gold_alpha_key = (gold_run_name, normalA_iter, 'alpha')
+    gold_grad_key = (gold_run_name, normalA_iter, 'grad')
+    
+    avg_corr = None
+    avg_perf = None
+    baseline = None
+    for run in comparison_run_names:
+        normal_keys = [(run, iter_, 'alpha') for iter_ in iterations]
+        acc_keys = [(run, iter_, performance_name) for iter_ in iterations]
+        
+        alpha_corrs, alpha_baseline = corrs_iter(dicts, gold_alpha_key, normal_keys, metric)
+        alpha_perfs = acc_iter(dat['metas'], acc_keys)
+        
+        if avg_corr is None:
+            avg_corr = np.array(alpha_corrs)
+            avg_perf = np.array(alpha_perfs)
+            baseline = sum(alpha_baseline) / len(alpha_baseline)
+        else:
+            avg_corr += np.array(alpha_corrs)
+            avg_perf += np.array(alpha_perfs)
+            baseline += (sum(alpha_baseline) / len(alpha_baseline))
+    avg_corr = avg_corr / len(comparison_run_names)
+    avg_perf = avg_perf / len(comparison_run_names)
+    baseline = baseline / len(comparison_run_names)
+    print(avg_corr)
+    
+    beta_unif_keys = [(unif_run_name, iter_, 'beta') for iter_ in iterations]
+    beta_corr_unif = max_corr(dicts, gold_alpha_key, beta_unif_keys, metric)
+    beta_corr_grad = max_corr(dicts, gold_grad_key, beta_unif_keys, metric)
+    beta_corr_px = max_corr(dicts, px_name, beta_unif_keys, metric)
+    
+    best_acc = dat['metas'][(gold_run_name, normalA_iter, performance_name)]
+    idx_unif = passing_idx(avg_corr, beta_corr_unif)
+    idx_grad = passing_idx(avg_corr, beta_corr_grad)
+    idx_px = passing_idx(avg_corr, beta_corr_px)
+    
+    def out_perf(idx):
+        if idx is None:
+            return None
+        else:
+            return avg_perf[idx]
+    
+    return {'agr_unif': beta_corr_unif, 'agr_px': beta_corr_px, 'agr_grad': beta_corr_grad, 'xi_unif': out_perf(idx_unif), 
+            'xi_px': out_perf(idx_px), 'xi_grad': out_perf(idx_grad), 'best_perf': best_acc, 'baseline': baseline}
+
+def load_dataset_dict(dataset_name, embed_key):
+    dat = pkl.load(open('outputs/{dataset}_logs.pkl'.format(dataset=dataset_name), 'rb'))
+    embed_beta = pkl.load(open('outputs/{dataset}embedding256beta.pkl'.format(dataset=dataset_name), 'rb'))
+    impute_beta(dat['data'], embed_beta, embed_key)
+    flip_betas(dat['data'])
+    flip_grads(dat['data'])
+    return dat
+
+
