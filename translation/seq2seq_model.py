@@ -115,6 +115,7 @@ class Seq2seq(nn.Module):
 		    'loss': loss,
 		    'clf': clf_loss,
 		    'attn': loss - clf_loss,
+		    'attention': attention
 		}
 
 	def decode(self, decoder_input, initial_hidden, encoder_output, encoder_mask):
@@ -237,9 +238,12 @@ class Seq2seq(nn.Module):
 
 	def influence(self, logits, retain_graph):
 		self.zero_grad()
+		if self.inputs.grad is not None:
+			self.inputs.grad.data.zero_()
 		torch.sum(logits).backward(retain_graph=retain_graph)
 		grad = torch.tensor(self.inputs.grad)
 		self.zero_grad()
+		self.inputs.grad.data.zero_()
 		return grad
 
 

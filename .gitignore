@@ -4,8 +4,10 @@ __pycache__/
 models/
 outputs/
 outputs_old/
+outputs_old2/
 outputs_old_multi30k/
 .DS_Store
 env/
 *.swp
 *.pkl
+ruiqi_request/

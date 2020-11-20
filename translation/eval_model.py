@@ -285,6 +285,7 @@ def get_grad_influence(model, data_manager):
         grads = []
         for i in range(tgt_length):
             # negative log loss
+            model.zero_grad()
             (-1 * logits[i][decoder_target[i]]).backward(retain_graph=(i != tgt_length - 1))
             grad = model.grads['source_emb'].clone().detach().squeeze(1)
             grads.append(grad.unsqueeze(0))
@@ -295,6 +296,7 @@ def get_grad_influence(model, data_manager):
         # a positive score in the influence tensor indicates a positive influence
         influence = -torch.einsum("tsh,sh->ts", [grads, src_emb]).detach().cpu().numpy()
         influences.append(influence)
+    model.zero_grad()
     return influences
 
 def get_grad_influence2(model, data_manager, bsize):
@@ -316,7 +318,7 @@ def get_grad_influence2(model, data_manager, bsize):
         for idx in range(len(grads)):
         	tgt_length = torch.sum(decoder_target[:, idx].squeeze() != data_manager.pad_id).item()
         	src_length = torch.sum(source[:, idx].squeeze() != data_manager.pad_id).item()
-        	influences.append(grads[idx][:tgt_length, :src_length].clone().detach().cpu().numpy())
+        	influences.append(-grads[idx][:tgt_length, :src_length].clone().detach().cpu().numpy())
     return influences
 
 

@@ -56,7 +56,7 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
       result_dict = model(eval_train.X[i:(i+bsize)], uniform=uniform, in_grad=True, pad_token=train_data.stoi['<pad>'])
       scores = result_dict['scores'].detach().cpu().numpy()
       outputs = -(torch.tensor(list(eval_train.Y[i:(i+bsize)])).to(device) * torch.log(torch.sigmoid(result_dict['scores'])) + (1 - torch.tensor(list(eval_train.Y[i:(i+bsize)])).to(device)) * torch.log(1 - torch.sigmoid(result_dict['scores'])))
-      gs = [g.detach().cpu().numpy()[:result_dict['lens'][i]]  for i, g in enumerate(model.influence(outputs))]
+      gs = [-g.detach().cpu().numpy()[:result_dict['lens'][i]]  for i, g in enumerate(model.influence(outputs))]
       for x in range(len(result_dict['alpha'])):
         item = {}
         item['grad'] = gs[x]

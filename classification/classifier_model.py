@@ -81,9 +81,12 @@ class Model(nn.Module):
 
     def influence(self, logits):
         self.zero_grad()
+        if self.inputs.grad is not None:
+            self.inputs.grad.data.zero_()
         torch.sum(logits).backward()
         grad = torch.tensor(self.inputs.grad)
         self.zero_grad()
+        self.inputs.grad.data.zero_()
         return grad
 
 
