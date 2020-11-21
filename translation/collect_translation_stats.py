@@ -21,5 +21,5 @@ for dataset in datasets:
 			print('%s, %s, %s, %s' % (dataset, metric.name, split, perf))
 			print(stats)
 
-# with open('translation_results.pkl', 'wb+') as f:
-# 	pkl.dump(all_results, f)
+with open('translation_results.pkl', 'wb+') as f:
+	pkl.dump(all_results, f)
