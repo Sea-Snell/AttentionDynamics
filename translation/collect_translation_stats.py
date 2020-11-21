@@ -6,8 +6,10 @@ import json
 
 datasets = ['multi30k']
 embed_key = 'embed_beta'
-metrics = [TopPercentMatch(p=5), KendallTauCorr()]
-split_perf_groups = [('train', 'train_acc'), ('train', 'train_bleu'), ('val', 'val_acc'), ('val', 'val_bleu')]
+# metrics = [TopPercentMatch(p=5), KendallTauCorr()]
+# split_perf_groups = [('train', 'train_acc'), ('train', 'train_bleu'), ('val', 'val_acc'), ('val', 'val_bleu')]
+metrics = [TopPercentMatch(p=5)]
+split_perf_groups = [('val', 'val_acc'), ('val', 'val_acc')]
 runs = ['normal_B']
 
 all_results = {}
@@ -20,5 +22,5 @@ for dataset in datasets:
 			print('%s, %s, %s, %s' % (dataset, metric.name, split, perf))
 			print(stats)
 
-with open('translation_results.pkl', 'wb+') as f:
-	pkl.dump(all_results, f)
+# with open('translation_results.pkl', 'wb+') as f:
+# 	pkl.dump(all_results, f)
