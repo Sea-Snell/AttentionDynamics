@@ -28,7 +28,7 @@ class Metric:
                 corr_sum += corr
 
                 # obtain the random baseline by shuffling beta
-                random_beta = np.array(beta)
+                random_beta = np.copy(np.array(beta))
                 total_random_corr_single = 0.
                 for _ in range(num_random):
                     np.random.shuffle(random_beta)
