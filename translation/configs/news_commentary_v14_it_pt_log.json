@@ -52,5 +52,5 @@
 	{"name": "uniform", "iteration": 34000, "seed": 12, "uniform": true, "calculate_grad": false},
 	{"name": "uniform", "iteration": 40000, "seed": 12, "uniform": true, "calculate_grad": false},
 	{"name": "uniform", "iteration": 50000, "seed": 12, "uniform": true, "calculate_grad": false},
-	{"name": "uniform", "iteration": 52000, "seed": 12, "uniform": true, "calculate_grad": false},
+	{"name": "uniform", "iteration": 52000, "seed": 12, "uniform": true, "calculate_grad": false}
 ]
