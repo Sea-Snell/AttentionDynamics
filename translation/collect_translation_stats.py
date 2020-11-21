@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 from utils import *
 import json
 
-datasets = ['multi30k']
+# datasets = ['multi30k', 'iwslt14', 'news_commentary_v14_it_pt', 'news_commentary_v14_it_pt', 'news_commentary_v14_en_nl', 'news_commentary_v14_en_pt']
+datasets = ['multi30k', 'iwslt14', 'news_commentary_v14_it_pt', 'news_commentary_v14_it_pt', 'news_commentary_v14_en_nl']
 embed_key = 'embed_beta'
-# metrics = [TopPercentMatch(p=5), KendallTauCorr()]
-# split_perf_groups = [('train', 'train_acc'), ('train', 'train_bleu'), ('val', 'val_acc'), ('val', 'val_bleu')]
-metrics = [TopPercentMatch(p=5)]
-split_perf_groups = [('val', 'val_acc'), ('val', 'val_acc')]
+metrics = [TopPercentMatch(p=5), KendallTauCorr()]
+split_perf_groups = [('train', 'train_acc'), ('train', 'train_bleu'), ('val', 'val_acc'), ('val', 'val_bleu')]
 runs = ['normal_B']
 
 all_results = {}
