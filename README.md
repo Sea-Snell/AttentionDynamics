@@ -1,10 +1,10 @@
-#Interpreting Attention Training in LSTMs with Classical Alignment
+# Interpreting Attention Training in LSTMs with Classical Alignment
 code for experiments.
 
 this repo is split into classification and translation experiments in seperate folders. The file structure for both is roughly the same.
 
 
-##classification
+## classification
 The main files to run to reproduce our classification experiments are as follows:
 
 Run "classification/train_classifier.py" to train a translation model
@@ -60,7 +60,7 @@ Within each of these keys will be a dictionary with all the different results re
 We have provided two bash script files "classification/commands/dump_logs.sh" and "classification/commands/train_runs.sh", these run the exact set of "classification/train_classifier.py" and "classification/eval_dump.py" commands we ran. You will have to run "classification/embedding_beta.py" and "classification/collect_classification_stats.py" seperately.
 
 
-##translation
+## translation
 The main files for to run to reproduce our translation experiments are as follows:
 
 Run "translation/train_translation.py" to train a translation model
