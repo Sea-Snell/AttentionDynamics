@@ -5,11 +5,9 @@ import pickle as pkl
 import numpy as np
 from typing import List
 import random
-from itertools import combinations
-from collections import Counter
 
-exp_name = 're_all_comb112'
-exp_dir = '../logs/seq2seq_toylogs2/' + exp_name
+exp_name = 'all_comb'
+exp_dir = exp_name
 save_result_dir = exp_dir + '/results/'
 num_vocab = 40
 end_of_sequence = num_vocab
@@ -270,7 +268,7 @@ def run():
         comb = tuple(random_attns[:num_heads])
         random_histories[comb] = is_good_comb(comb, return_history=True)
 
-    pkl.dump((bad_histories, good_histories, random_histories), open('re_%dheadcomb112.pkl' % num_heads, 'wb'))
+    pkl.dump((bad_histories, good_histories, random_histories), open('re_%dheadcomb.pkl' % num_heads, 'wb'))
 
 
 def all_bad(key):

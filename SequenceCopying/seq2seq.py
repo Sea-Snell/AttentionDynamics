@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import os
 from argparse import ArgumentParser
 from seq2seq_model import Seq2seq
 import random
@@ -14,7 +13,7 @@ parser.add_argument('--seq_length', type=int, default=40)
 parser.add_argument('--bi', default=False, action='store_true')
 parser.add_argument('--bsize', type=int, default=128)
 parser.add_argument('--exp_name', type=str, default=None)
-parser.add_argument('--steps_s1', type=int, default=1000)
+parser.add_argument('--steps_s1', type=int, default=200)
 parser.add_argument('--hidden_dim', type=int, default=256)
 parser.add_argument('--no_rep', default=False, action='store_true')
 parser.add_argument('--invasive_uniform', default=False, action='store_true')

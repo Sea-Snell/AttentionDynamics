@@ -52,7 +52,7 @@ class Seq2seq(nn.Module):
         source_emb = self.embedding(source)
         if self.training:
             source_emb.register_hook(self.save_grad('source_emb'))
-        packed_input = pack_padded_sequence(source_emb, lengths, enforce_sorted=False)
+        packed_input = pack_padded_sequence(source_emb, lengths.cpu(), enforce_sorted=False)
         packed_output, (h_n, c_n) = self.encoder_lstm(packed_input)
         encoder_output, _ = pad_packed_sequence(packed_output)
         encoder_hidden = (self.convert_hidden(h_n), self.convert_hidden(c_n))
@@ -201,9 +201,6 @@ class Seq2seq(nn.Module):
         # tgt x src x bsize x num_vocab
         pred = torch.argmax(probs, dim=-1)
         result = np.array([pred[i][i].detach().cpu().numpy() for i in range(40)])
-        print(source.detach().cpu().numpy())
-        print(result)
-
 
         src_lengths = torch.sum(source != self.pad_id, axis=0)
         tgt_lengths = torch.sum(target_out != self.pad_id, axis=0)
