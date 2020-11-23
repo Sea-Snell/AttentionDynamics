@@ -153,7 +153,6 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
             avg_perf += np.array(alpha_perfs)
             baseline += (sum(alpha_baseline) / len(alpha_baseline))
     avg_corr = avg_corr / len(comparison_run_names)
-    print(avg_corr)
     avg_perf = avg_perf / len(comparison_run_names)
     baseline = baseline / len(comparison_run_names)
     
@@ -174,7 +173,8 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
             return avg_perf[idx]
     
     return {'agr_unif': beta_corr_unif, 'agr_px': beta_corr_px, 'agr_grad': beta_corr_grad, 'xi_unif': out_perf(idx_unif), 
-            'xi_px': out_perf(idx_px), 'xi_grad': out_perf(idx_grad), 'best_perf': best_acc, 'baseline': baseline}
+            'xi_px': out_perf(idx_px), 'xi_grad': out_perf(idx_grad), 'best_perf': best_acc, 'baseline': baseline, 
+            'alpha_corrs': avg_corr, 'alpha_perfs': avg_perf, 'iterations': iterations}
 
 def load_dataset_dict(dataset_name, embed_key):
     dat = pkl.load(open('outputs/{dataset}_logs.pkl'.format(dataset=dataset_name), 'rb'))

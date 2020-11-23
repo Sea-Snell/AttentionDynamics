@@ -27,8 +27,6 @@ eos_id = vocab.PieceToId("</s>")
 val_data_manager = StateManager(validation_data, vocab, bos_id, eos_id, pad_id, device, {})
 train_data_manager = StateManager(training_data, vocab, bos_id, eos_id, pad_id, device, {})
 
-# train_set = [d for d in dataset if d['split'] == 'train']
-# val_set = [d for d in dataset if d['split'] == 'val']
 vocab_size = len(vocab)
 output_size = len(vocab)
 print(vocab_size, output_size)
@@ -74,7 +72,6 @@ for d in tqdm(val_data_manager.dataset):
     total_loss += -torch.sum(output_lsm[trg]).item()
 print(total_loss)
 
-# optim = torch.optim.SGD(lr=5e-3, params=model.parameters())
 optim = torch.optim.Adam(params=model.parameters())
 best_word_translation = model.obtain_word_translation()
 best_epoch = 0

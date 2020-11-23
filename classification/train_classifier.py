@@ -75,6 +75,16 @@ def get_args():
     args = parser.parse_args()
     return args
 
+def get_n_params(model):
+  pp=0
+  emb_size = model.state_dict()['embedding.weight'].shape 
+  for p in model.parameters():
+      nn=1
+      for s in list(p.size()):
+          nn = nn*s
+      pp += nn
+  return pp, pp - emb_size[0] * emb_size[1]
+
 if __name__ == '__main__':
     args = get_args()
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -112,7 +122,8 @@ if __name__ == '__main__':
 
     train_data_manager, test_data_manager = process_dataset(dataset, args.test_set_size)
     model = Model(train_data_manager.vocab_size, train_data_manager.tokenid2vector, EMBED_DIM, HIDDEN_DIM, INTERMEDIATE_DIM, device).to(device)
-    train(model, os.path.join(model_path, 'model'), train_data_manager, test_data_manager, steps, bsize, save_every, device, uniform, custom_saves)
+    print(get_n_params(model))
+    # train(model, os.path.join(model_path, 'model'), train_data_manager, test_data_manager, steps, bsize, save_every, device, uniform, custom_saves)
 
 
 

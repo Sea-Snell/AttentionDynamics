@@ -3,11 +3,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils import *
 import json
+from argparse import ArgumentParser
 
-datasets = ['IMDB', 'Furd', 'AG_News', 'Newsgroups', 'Amzn', 'Yelp', 'SMS']
+#this script loads output files for a given list of datasets and produces a pickle file with all the summary statistics we present in our paper
+
+parser = ArgumentParser()
+parser.add_argument('--datasets', nargs='+', required=True, help='space seperated list of dataset names to collect stats for')
+parser.add_argument('--out_file', type=str, required=True, help='file to output stats to')
+parser.add_argument('--include_kendall_tau', default=False, action='store_true')
+parser.add_argument('--include_train_results', default=False, action='store_true')
+args = parser.parse_args()
+
+datasets = args.datasets
+out_file = args.out_file
+
+if args.include_kendall_tau:
+	metrics = [TopPercentMatch(p=5), KendallTauCorr()]
+else:
+	metrics = [TopPercentMatch(p=5)]
+
+split_perf_groups = [('val', 'test_acc')]
+if args.include_train_results:
+	split_perf_groups += [('train', 'train_acc')]
+
 embed_key = 'embed_beta'
-metrics = [TopPercentMatch(p=5), KendallTauCorr()]
-split_perf_groups = [('train', 'train_acc'), ('val', 'test_acc')]
 runs = ['normal_B', 'normal_C', 'normal_D', 'normal_E', 'normal_F']
 
 all_results = {}
@@ -20,5 +39,8 @@ for dataset in datasets:
 			print('%s, %s, %s, %s' % (dataset, metric.name, split, perf))
 			print(stats)
 
-with open('classification_results.pkl', 'wb+') as f:
+with open(out_file, 'wb+') as f:
 	pkl.dump(all_results, f)
+
+
+
