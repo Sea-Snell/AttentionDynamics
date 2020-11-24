@@ -174,14 +174,17 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
     baseline = baseline / len(comparison_run_names)
     
     beta_unif_keys = [(unif_run_name, iter_, 'beta') for iter_ in iterations]
+    beta_normal_keys = [(comparison_run_names[0], iter_, 'beta') for iter_ in iterations]
     beta_corr_unif = max_corr(dicts, gold_alpha_key, beta_unif_keys, metric)
     beta_corr_grad = max_corr(dicts, gold_grad_key, beta_unif_keys, metric)
     beta_corr_px = max_corr(dicts, px_name, beta_unif_keys, metric)
+    beta_corr_normal = max_corr(dicts, gold_alpha_key, beta_normal_keys, metric)
     
     best_acc = dat['metas'][(gold_run_name, normalA_iter, performance_name)]
     idx_unif = passing_idx(avg_corr, beta_corr_unif)
     idx_grad = passing_idx(avg_corr, beta_corr_grad)
     idx_px = passing_idx(avg_corr, beta_corr_px)
+    idx_normal = passing_idx(avg_corr, beta_corr_normal)
     
     def out_perf(idx):
         if idx is None:
@@ -189,8 +192,8 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
         else:
             return avg_perf[idx]
     
-    return {'agr_unif': beta_corr_unif, 'agr_px': beta_corr_px, 'agr_grad': beta_corr_grad, 'xi_unif': out_perf(idx_unif), 
-            'xi_px': out_perf(idx_px), 'xi_grad': out_perf(idx_grad), 'best_perf': best_acc, 'baseline': baseline,
+    return {'agr_unif': beta_corr_unif, 'agr_px': beta_corr_px, 'agr_grad': beta_corr_grad, 'agr_normal': beta_corr_normal, 'xi_unif': out_perf(idx_unif), 
+            'xi_px': out_perf(idx_px), 'xi_grad': out_perf(idx_grad), 'xi_normal': out_perf(idx_normal), 'best_perf': best_acc, 'baseline': baseline,
             'alpha_corrs': avg_corr, 'alpha_perfs': avg_perf, 'iterations': iterations}
 
 def load_dataset_dict(dataset_name, embed_key):

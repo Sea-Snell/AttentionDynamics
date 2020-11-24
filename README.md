@@ -1,4 +1,4 @@
-# Interpreting Attention Training in LSTMs with Classical Alignment
+# Understanding How Attention Learns in LSTM-based Machine Translation Models
 code for experiments. <br />
 
 this repo is split into classification and translation experiments in seperate folders. The file structure for both is roughly the same.
@@ -49,14 +49,17 @@ Arguments: <br />
 The output pickle file will be structured as a dictionary with keys identifying the different experiments. <br />
 The keys are a tuple of (dataset name, metric name ["kendall tau" or "top 5% match"], split ["train" or "val"], performance metric used ["test_acc" or "train_acc"]) <br />
 Within each of these keys will be a dictionary with all the different results reported in our tables <br />
-"agr_unif" is first column of table 1 in our paper <br />
-"agr_px" is the second column <br />
-"arg_grad" is the third column <br />
-"baseline" is the fourth column <br />
-"xi_unif" is the fith column <br />
-"xi_px" is the sixth column <br />
-"xi_grad" is the seventh column <br />
-"best_perf" is the last column <br />
+"agr_unif" is A(\alpha, \beta^{uf}) <br />
+"agr_px" is A(\beta^{uf}, \beta^{px}) <br />
+"arg_grad" is A(\Delta, \beta^{uf}) <br />
+"agr_normal" is A(\alpha, \beta) <br />
+"baseline" is \hat{A} <br />
+"xi_unif" is \xi(\alpha, \beta^{uf}) <br />
+"xi_px" is \xi(\beta^{uf}, \beta^{px}) <br />
+"xi_grad" is \xi(\Delta, \beta^{uf}) <br />
+"xi_normal" is \xi(\alpha, \beta) <br />
+"best_perf" \xi^* <br />
+
 <br />
 We have provided two bash script files "classification/commands/dump_logs.sh" and "classification/commands/train_runs.sh", these run the exact set of "classification/train_classifier.py" and "classification/eval_dump.py" commands we ran. You will have to run "classification/embedding_beta.py" and "classification/collect_classification_stats.py" seperately. <br />
 <br />
@@ -106,14 +109,17 @@ Arguments: <br />
 The output pickle file will be structured as a dictionary with keys identifying the different experiments. <br />
 The keys are a tuple of (dataset name, metric name ["kendall tau" or "top 5% match"], split ["train" or "val"], performance metric used ["val_acc", "train_acc", "val_bleu", or "train_bleu"]) <br />
 Within each of these keys will be a dictionary with all the different results reported in our tables <br />
-"agr_unif" is first column of table 1 in our paper <br />
-"agr_px" is the second column <br />
-"arg_grad" is the third column <br />
-"baseline" is the fourth column <br />
-"xi_unif" is the fith column <br />
-"xi_px" is the sixth column <br />
-"xi_grad" is the seventh column <br />
-"best_perf" is the last column <br />
+"agr_unif" is A(\alpha, \beta^{uf}) <br />
+"agr_px" is A(\beta^{uf}, \beta^{px}) <br />
+"arg_grad" is A(\Delta, \beta^{uf}) <br />
+"agr_normal" is A(\alpha, \beta) <br />
+"baseline" is \hat{A} <br />
+"xi_unif" is \xi(\alpha, \beta^{uf}) <br />
+"xi_px" is \xi(\beta^{uf}, \beta^{px}) <br />
+"xi_grad" is \xi(\Delta, \beta^{uf}) <br />
+"xi_normal" is \xi(\alpha, \beta) <br />
+"best_perf" \xi^* <br />
+
 <br />
 
 We have provided two bash script files "translation/commands/dump_logs.sh" and "translation/commands/train_runs.sh", these run the exact set of "translation/train_classifier.py" and "translation/eval_dump.py" commands we ran. You will have to run "translation/embedding_beta.py" and "translation/collect_classification_stats.py" seperately.
