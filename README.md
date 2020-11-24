@@ -124,6 +124,14 @@ Within each of these keys will be a dictionary with all the different results re
 
 We have provided two bash script files "translation/commands/dump_logs.sh" and "translation/commands/train_runs.sh", these run the exact set of "translation/train_classifier.py" and "translation/eval_dump.py" commands we ran. You will have to run "translation/embedding_beta.py" and "translation/collect_classification_stats.py" seperately.
 
+## Sequence Copying
 
+python3 seq2seq.py --no_rep
 
+To compare distribution of permutation of 40 vocabs vs. 40 out of 60, run
+"python3 seq2seq.py --no_rep", 
+and 
+"python3 seq2seq.py --no_rep num_vocab=60"
 
+To reproduce the multi-head attention experiment in Section 5.2, run 
+"python3 multihead.py". The learning curves will be dumped into re_8headcomb.pkl
