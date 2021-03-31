@@ -2,6 +2,10 @@
 
 this repo is split into classification and translation experiments in seperate folders. The file structure for both is roughly the same.
 
+This repo has been tested on python3.7
+
+Run ```pip install -r requirements.txt``` to install dependencies
+
 ## classification
 
 The main files to run to reproduce our classification experiments are as follows:
