@@ -1,4 +1,4 @@
-import torchtext
+import torchtext.legacy as torchtext
 import sentencepiece
 import os
 from typing import List
@@ -26,46 +26,11 @@ def sentence2ids_nopad(state_manager, sentence: str, additional_eos: bool) -> Li
     return indices
 
 def make_batch(state_manager, sentences: List[str], additional_eos: bool) -> torch.Tensor:
-    """Convert a list of sentences into a batch of subword indices.
-
-    Args:
-            sentences: A list of sentences, each of which is a string.
-
-    Returns:
-            A LongTensor of size (max_sequence_length, batch_size) containing the
-            subword indices for the sentences, where max_sequence_length is the length
-            of the longest sentence as encoded by the subword vocabulary and batch_size
-            is the number of sentences in the batch. A beginning-of-sentence token
-            should be included before each sequence, and an end-of-sentence token should
-            be included after each sequence. Empty slots at the end of shorter sequences
-            should be filled with padding tokens. The tensor should be located on the
-            device defined at the beginning of the notebook.
-    """
-
-    # Implementation tip: You can use the nn.utils.rnn.pad_sequence utility
-    # function to combine a list of variable-length sequences with padding.
-    # YOUR CODE HERE
-    #...
     batch_ids = [torch.tensor(sentence2ids_nopad(state_manager, sentence, additional_eos)) for sentence in sentences]
     return nn.utils.rnn.pad_sequence(batch_ids).to(state_manager.device)
 
 
 def make_batch_iterator(state_manager, batch_size, shuffle=False):
-    """Make a batch iterator that yields source-target pairs.
-
-    Args:
-            dataset: A torchtext dataset object.
-            batch_size: An integer batch size.
-            shuffle: A boolean indicating whether to shuffle the examples.
-
-    Yields:
-            Pairs of tensors constructed by calling the make_batch function on the
-            source and target sentences in the current group of examples. The max
-            sequence length can differ between the source and target tensor, but the
-            batch size will be the same. The final batch may be smaller than the given
-            batch size.
-    """
-
     examples = list(state_manager.dataset)
     if shuffle:
         random.shuffle(examples)

@@ -1,33 +1,14 @@
-import torch
-import torchtext
-
 import json
-import math
 import random
-
-import matplotlib.pyplot as plt
-import numpy as np
-import sacrebleu
-import sentencepiece
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from seq2seq_model import Seq2seq
 from argparse import ArgumentParser
 import numpy as np
-import pickle as pkl
 import os
-from typing import List
-from load_datasets import load_dataset_by_name, StateManager, make_batch, make_batch_iterator
+from load_datasets import load_dataset_by_name, StateManager, make_batch_iterator
 from eval_model import evaluate, evaluate_next_token
 
-def train(model, num_epochs, batch_size, model_file, ref_attn_func=None, attn_only=False, custom_saves=set()):
-	"""Train the model and save its best checkpoint.
-
-	Model performance across epochs is evaluated using token-level accuracy on the
-	validation set. The best checkpoint obtained during training will be stored on
-	disk and loaded back into the model at the end of training.
-	"""
+def train(model, num_epochs, batch_size, model_file, attn_only=False, custom_saves=set()):
 	if attn_only:
 		optimizer = torch.optim.Adam(model.attn_param_group)
 	else:

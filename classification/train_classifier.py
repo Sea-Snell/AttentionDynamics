@@ -2,16 +2,13 @@ from torch import nn
 import json
 from collections import defaultdict
 import torch
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-import pickle as pkl
-from argparse import ArgumentParser
 import random
 import numpy as np
 import tqdm
 from classifier_model import Model
 from argparse import ArgumentParser
 import os
-from load_datasets import process_dataset, DataManager
+from load_datasets import process_dataset
 
 def train(model, model_path, train_data, test_data, steps, bsize, save_every, device, uniform, custom_saves):
     model.train()
@@ -122,8 +119,7 @@ if __name__ == '__main__':
 
     train_data_manager, test_data_manager = process_dataset(dataset, args.test_set_size)
     model = Model(train_data_manager.vocab_size, train_data_manager.tokenid2vector, EMBED_DIM, HIDDEN_DIM, INTERMEDIATE_DIM, device).to(device)
-    print(get_n_params(model))
-    # train(model, os.path.join(model_path, 'model'), train_data_manager, test_data_manager, steps, bsize, save_every, device, uniform, custom_saves)
+    train(model, os.path.join(model_path, 'model'), train_data_manager, test_data_manager, steps, bsize, save_every, device, uniform, custom_saves)
 
 
 

@@ -1,13 +1,8 @@
-from torch import nn
 import json
-from collections import defaultdict
 import torch
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import pickle as pkl
-from argparse import ArgumentParser
 import random
 import numpy as np
-import tqdm
 from classifier_model import Model
 from argparse import ArgumentParser
 import os
@@ -16,7 +11,6 @@ from load_datasets import process_dataset, DataManager
 
 def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, device):
     print('interpreting %s' % model_path)
-    meta_stats = {}
     train_data, test_data = process_dataset(dataset, test_set_size)
 
     model = Model(train_data.vocab_size, train_data.tokenid2vector, 
@@ -28,7 +22,6 @@ def dump_interpret(model_path, uniform, dataset, test_set_size, model_config, de
     bsize = model_config['batch_size']
 
     data_stats = []
-    meta_stats = {}
     for i in range(0, len(test_data.X), bsize):
       result_dict = model(test_data.X[i:(i+bsize)], uniform=uniform, in_grad=True, pad_token=test_data.stoi['<pad>'])
       scores = result_dict['scores'].detach().cpu().numpy()

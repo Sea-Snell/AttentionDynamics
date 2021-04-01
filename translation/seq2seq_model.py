@@ -80,24 +80,6 @@ class Seq2seq(nn.Module):
 		return encoder_output, encoder_mask, (encoder_hidden, (torch.zeros([1] + list(encoder_hidden[0].shape)[1:-1] + [2 * encoder_hidden[0].shape[-1]]).to(self.device), torch.zeros([1] + list(encoder_hidden[1].shape)[1:-1] + [2 * encoder_hidden[1].shape[-1]]).to(self.device)))
 
 	def compute_loss(self, source, target, ref_attn_func=None):
-		"""Run the model on the source and compute the loss on the target.
-
-		Args:
-		  source: An integer tensor with shape (max_source_sequence_length,
-		    batch_size) containing subword indices for the source sentences.
-		  target: An integer tensor with shape (max_target_sequence_length,
-		    batch_size) containing subword indices for the target sentences.
-
-		Returns:
-		  A scalar float tensor representing cross-entropy loss on the current batch.
-		"""
-
-		# Implementation tip: don't feed the target tensor directly to the decoder.
-		# To see why, note that for a target sequence like <s> A B C </s>, you would
-		# want to run the decoder on the prefix <s> A B C and have it predict the
-		# suffix A B C </s>.
-
-		# YOUR CODE HERE
 		encoder_output, encoder_mask, encoder_hidden = self.encode(source)
 		target_in, target_out = target[:-1], target[1:]
 		logits, decoder_hidden, attention = self.decode(target_in, encoder_hidden,
@@ -119,45 +101,6 @@ class Seq2seq(nn.Module):
 		}
 
 	def decode(self, decoder_input, initial_hidden, encoder_output, encoder_mask):
-		"""Run the decoder LSTM starting from an initial hidden state.
-
-		The third and fourth arguments are not used in the baseline model, but are
-		included for compatibility with the attention model in the next section.
-
-		Args:
-		  decoder_input: An integer tensor with shape (max_decoder_sequence_length,
-		    batch_size) containing the subword indices for the decoder input. During
-		    evaluation, where decoding proceeds one step at a time, the initial
-		    dimension should be 1.
-		  initial_hidden: A pair of tensors (h_0, c_0) representing the initial
-		    state of the decoder, each with shape (num_layers, batch_size,
-		    hidden_size).
-		  encoder_output: The output of the encoder with shape
-		    (max_source_sequence_length, batch_size, 2 * hidden_size).
-		  encoder_mask: The output mask from the encoder with shape
-		    (max_source_sequence_length, batch_size). Encoder outputs at positions
-		    with a True value correspond to padding tokens and should be ignored.
-
-		Returns:
-		  A tuple with three elements:
-		    logits: A tensor with shape (max_decoder_sequence_length, batch_size,
-		      vocab_size) containing unnormalized scores for the next-word
-		      predictions at each position.
-		    decoder_hidden: A pair of tensors (h_n, c_n) with the same shape as
-		      initial_hidden representing the updated decoder state after processing
-		      the decoder input.
-		    attention_weights: A tensor with shape (max_decoder_sequence_length,
-		      batch_size, max_source_sequence_length) representing the normalized
-		      attention weights. This should sum to 1 along the last dimension.
-		"""
-
-		# Implementation tip: use a large negative number like -1e9 instead of
-		# float("-inf") when masking logits to avoid numerical issues.
-
-		# Implementation tip: the function torch.einsum may be useful here.
-		# See https://rockt.github.io/2018/04/30/einsum for a tutorial.
-
-		# YOUR CODE HERE
 		tgt_length, batch_size = decoder_input.shape
 		decoder_emb = self.embedding(decoder_input)
 		initial_hidden1, initial_hidden2 = initial_hidden

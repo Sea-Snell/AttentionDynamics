@@ -1,18 +1,8 @@
-import torch
-import json
 import math
-import random
-import numpy as np
 import sacrebleu
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from seq2seq_model import Seq2seq
-from argparse import ArgumentParser
 import numpy as np
-import pickle as pkl
-import os
-from typing import List
 from load_datasets import make_batch, make_batch_iterator
 
 epsilon = 1e-6
@@ -27,44 +17,6 @@ def op_on_hidden(op1, op2, hc):
 
 
 def predict_beam(model, sentences, data_manager, k=5, max_length=100):
-	"""Make predictions for the given inputs using beam search.
-
-	Args:
-		model: A sequence-to-sequence model.
-		sentences: A list of input sentences, represented as strings.
-		k: The size of the beam.
-		max_length: The maximum length at which to truncate outputs in order to
-			avoid non-terminating inference.
-
-	Returns:
-		A list of beam predictions. Each element in the list should be a list of k
-		strings corresponding to the top k predictions for the corresponding input,
-		sorted in descending order by score.
-	"""
-
-	# Requirement: your implementation must be batched. This means that you should
-	# make only one call to model.encode() at the start of the function, and make
-	# only one call to model.decode() per inference step.
-
-	# Suggestion: for efficiency, we suggest that you implement all beam
-	# manipulations using batched PyTorch computations rather than Python
-	# for-loops.
-
-	# Implementation tip: once an EOS token has been generated, force the output
-	# for that candidate to be padding tokens in all subsequent time steps by
-	# adding a large positive number like 1e9 to the appropriate logits. This
-	# will ensure that the candidate stays on the beam, as its probability
-	# will be very close to 1 and its score will effectively remain the same as
-	# when it was first completed.  All other (invalid) token continuations will
-	# have extremely low log probability and will not make it onto the beam.
-
-	# Implementation tip: while you are encouraged to keep your tensor dimensions
-	# constant for simplicity (aside from the sequence length), some special care
-	# will need to be taken on the first iteration to ensure that your beam
-	# doesn't fill up with k identical copies of the same candidate.
-
-	# YOUR CODE HERE
-	# prepare all the result aggregators
 	batch_size = len(sentences)
 	hypothesis_count = batch_size * k
 	hypothesis_ends = torch.zeros(hypothesis_count, dtype=torch.bool).to(data_manager.device)
@@ -166,13 +118,6 @@ def get_state_scores2(model, dataset_manager):
 
 
 def evaluate_next_token(model, data_manager, batch_size=64):
-    """Compute token-level perplexity and accuracy metrics.
-
-    Note that the perplexity here is over subwords, not words.
-
-    This function is used for validation set evaluation at the end of each epoch
-    and should not be modified.
-    """
     model.eval()
     total_cross_entropy = 0.0
     total_predictions = 0
@@ -203,27 +148,6 @@ def evaluate_next_token(model, data_manager, batch_size=64):
 
 
 def predict_greedy(model, sentences, data_manager, max_length=100):
-	"""Make predictions for the given inputs using greedy inference.
-
-	Args:
-		model: A sequence-to-sequence model.
-		sentences: A list of input sentences, represented as strings.
-		max_length: The maximum length at which to truncate outputs in order to
-			avoid non-terminating inference.
-
-	Returns:
-		A list of predicted translations, represented as strings.
-	"""
-
-	# Requirement: your implementation must be batched. This means that you should
-	# make only one call to model.encode() at the start of the function, and make
-	# only one call to model.decode() per inference step.
-
-	# Implementation tip: once an EOS token has been generated, force the output
-	# for that example to be padding tokens in all subsequent time steps by
-	# adding a large positive number like 1e9 to the appropriate logits.
-
-	# YOUR CODE HERE
 	source = make_batch(data_manager, sentences, additional_eos=True)
 	batch_size = len(sentences)
 	encoder_output, encoder_mask, encoder_hidden = model.encode(source)

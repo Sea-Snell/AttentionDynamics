@@ -1,8 +1,4 @@
-import pickle as pkl
-import numpy as np
-import matplotlib.pyplot as plt
 from utils import *
-import json
 from argparse import ArgumentParser
 
 #this script loads output files for a given list of datasets and produces a pickle file with all the summary statistics we present in our paper

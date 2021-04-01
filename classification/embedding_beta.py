@@ -5,8 +5,7 @@ import torch
 from tqdm import tqdm
 import random
 import os
-from load_datasets import process_dataset, DataManager
-from collections import defaultdict
+from load_datasets import process_dataset
 
 def get_args():
     parser = ArgumentParser()
