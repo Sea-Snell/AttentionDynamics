@@ -82,7 +82,7 @@ Within each of these keys will be a dictionary with all the different results re
 - "xi_px" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%28%5Calpha%2C%20%5Cbeta%5E%7Buf%7D%29)
 - "xi_grad" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%28%5CDelta%2C%20%5Cbeta%5E%7Buf%7D%29)
 - "xi_normal" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%28%5Calpha%2C%20%5Cbeta%29)
-- "best_perf" ![](https://latex.codecogs.com/gif.latex?%5Cxi%5E*)
+- "best_perf" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%5E*)
 
 
 We have provided two bash script files ```dump_logs.sh``` and ```train_runs.sh```, these run the exact set of ```train_classifier.py``` and ```eval_dump.py``` commands we ran. You will have to run ```embedding_beta.py``` and ```collect_classification_stats.py``` separately.
@@ -163,7 +163,7 @@ Within each of these keys will be a dictionary with all the different results re
 - "xi_px" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%28%5Calpha%2C%20%5Cbeta%5E%7Buf%7D%29)
 - "xi_grad" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%28%5CDelta%2C%20%5Cbeta%5E%7Buf%7D%29)
 - "xi_normal" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%28%5Calpha%2C%20%5Cbeta%29)
-- "best_perf" ![](https://latex.codecogs.com/gif.latex?%5Cxi%5E*)
+- "best_perf" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%5E*)
 
 
 We have provided two bash script files ```dump_logs.sh``` and ```train_runs.sh```, these run the exact set of ```train_classifier.py``` and ```eval_dump.py``` commands we ran. You will have to run ```embedding_beta.py``` and ```collect_classification_stats.py``` separately.
