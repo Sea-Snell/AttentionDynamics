@@ -12,6 +12,9 @@ The main steps to reproduce our classification experiments are as follows:
 
 For all of these steps make sure you are in the ```classification/``` directory, so first ```cd classification/```
 
+Download our processed data files [here](https://drive.google.com/drive/folders/1erdWgIK8wxypwgOZScy8uB7yDWFRzVoU?usp=sharing). Make sure this folder in named ```data``` and place it in the ```classification/``` directory
+
+
 Run ```python train_classifier.py``` to train a classification model. This will save model checkpoints in the ```models/``` directory.
 
 Arguments:
@@ -89,6 +92,8 @@ We have provided two bash script files ```dump_logs.sh``` and ```train_runs.sh``
 The main steps to reproduce our translation experiments are as follows:
 
 For all of these steps make sure you are in the ```translation/``` directory, so first ```cd translation/```
+
+Download our processed data files [here](https://drive.google.com/drive/folders/1b_Oyxci1EpOK-LJc4u0IJ-lmtWsu9dK3?usp=sharing). Make sure this folder in named ```data``` and place it in the ```translation/``` directory
 
 Run ```python train_translation.py``` to train a translation model. This will save model checkpoints in the ```models/``` directory.
 
