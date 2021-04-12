@@ -1,5 +1,9 @@
 # Approximating How Single Head Attention Learns <br />
 
+Code from the paper" Approximating How Single Head Attention Learns"
+
+[arxiv preprint](https://arxiv.org/pdf/2103.07601.pdf) |  [blog](https://sea-snell.github.io/AttentionBlogSite/attention/2021/04/01/attention.html)
+
 this repo is split into classification and translation experiments in seperate folders. The file structure for both is roughly the same.
 
 This repo has been tested on python3.7
