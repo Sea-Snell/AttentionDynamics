@@ -2,6 +2,7 @@ certifi==2020.12.5
 chardet==4.0.0
 cycler==0.10.0
 idna==2.10
+joblib==1.0.1
 kiwisolver==1.3.1
 matplotlib==3.4.1
 mpmath==1.2.1
@@ -12,9 +13,12 @@ pyparsing==2.4.7
 python-dateutil==2.8.1
 requests==2.25.1
 sacrebleu==1.5.1
+scikit-learn==0.24.2
 scipy==1.6.2
 sentencepiece==0.1.95
 six==1.15.0
+sklearn==0.0
+threadpoolctl==2.1.0
 torch==1.8.1
 torchtext==0.9.1
 tqdm==4.59.0
