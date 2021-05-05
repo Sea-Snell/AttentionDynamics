@@ -8,3 +8,4 @@ env/
 *.swp
 *.pkl
 .idea/
+.vscode/
