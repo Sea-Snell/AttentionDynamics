@@ -142,7 +142,7 @@ def is_valid_dict(dict_):
             return False
     return True
 
-def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_run_name, px_name, performance_name):
+def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_run_name, px_name, logistic_name, performance_name):
     all_dicts = dat['data']
     dicts = [d for d in all_dicts if d['split'] == split and is_valid_dict(d)]
     iterations = sorted(list(set([key[1] for key in dat['metas']])))
@@ -178,12 +178,14 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
     beta_corr_unif = max_corr(dicts, gold_alpha_key, beta_unif_keys, metric)
     beta_corr_grad = max_corr(dicts, gold_grad_key, beta_unif_keys, metric)
     beta_corr_px = max_corr(dicts, px_name, beta_unif_keys, metric)
+    beta_corr_logistic = max_corr(dicts, logistic_name, beta_unif_keys, metric)
     beta_corr_normal = max_corr(dicts, gold_alpha_key, beta_normal_keys, metric)
     
     best_acc = dat['metas'][(gold_run_name, normalA_iter, performance_name)]
     idx_unif = passing_idx(avg_corr, beta_corr_unif)
     idx_grad = passing_idx(avg_corr, beta_corr_grad)
     idx_px = passing_idx(avg_corr, beta_corr_px)
+    idx_logistic = passing_idx(avg_corr, beta_corr_logistic)
     idx_normal = passing_idx(avg_corr, beta_corr_normal)
     
     def out_perf(idx):
@@ -192,14 +194,16 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
         else:
             return avg_perf[idx]
     
-    return {'agr_unif': beta_corr_unif, 'agr_px': beta_corr_px, 'agr_grad': beta_corr_grad, 'agr_normal': beta_corr_normal, 'xi_unif': out_perf(idx_unif), 
-            'xi_px': out_perf(idx_px), 'xi_grad': out_perf(idx_grad), 'xi_normal': out_perf(idx_normal), 'best_perf': best_acc, 'baseline': baseline,
+    return {'agr_unif': beta_corr_unif, 'agr_px': beta_corr_px, 'agr_logistic': beta_corr_logistic, 'agr_grad': beta_corr_grad, 'agr_normal': beta_corr_normal, 'xi_unif': out_perf(idx_unif), 
+            'xi_px': out_perf(idx_px), 'xi_logistic': out_perf(idx_logistic), 'xi_grad': out_perf(idx_grad), 'xi_normal': out_perf(idx_normal), 'best_perf': best_acc, 'baseline': baseline,
             'alpha_corrs': avg_corr, 'alpha_perfs': avg_perf, 'iterations': iterations}
 
-def load_dataset_dict(dataset_name, embed_key):
+def load_dataset_dict(dataset_name, embed_key, logistic_key):
     dat = pkl.load(open('outputs/{dataset}_logs.pkl'.format(dataset=dataset_name), 'rb'))
     embed_beta = pkl.load(open('outputs/{dataset}embedding256beta.pkl'.format(dataset=dataset_name), 'rb'))
+    logistic_beta = pkl.load(open('outputs/{dataset}_logistic_beta.pkl'.format(dataset=dataset_name), 'rb'))
     impute_beta(dat['data'], embed_beta, embed_key)
+    impute_beta(dat['data'], logistic_beta, logistic_key)
     flip_betas(dat['data'])
     flip_grads(dat['data'])
     return dat

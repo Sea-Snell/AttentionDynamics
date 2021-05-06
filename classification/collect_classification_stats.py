@@ -23,14 +23,15 @@ if args.include_train_results:
 	split_perf_groups += [('train', 'train_acc')]
 
 embed_key = 'embed_beta'
+logistic_key = 'logistic_beta'
 runs = ['normal_B', 'normal_C', 'normal_D', 'normal_E', 'normal_F']
 
 all_results = {}
 for dataset in datasets:
-	dat = load_dataset_dict(dataset, embed_key)
+	dat = load_dataset_dict(dataset, embed_key, logistic_key)
 	for metric in metrics:
 		for split, perf in split_perf_groups:
-			stats = fetch_stats(dat, split, metric, 'normal_A', runs, 'uniform', embed_key, perf)
+			stats = fetch_stats(dat, split, metric, 'normal_A', runs, 'uniform', embed_key, logistic_key, perf)
 			all_results[(dataset, metric.name, split, perf)] = stats
 			print('%s, %s, %s, %s' % (dataset, metric.name, split, perf))
 			print(stats)
