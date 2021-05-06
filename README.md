@@ -53,7 +53,7 @@ Arguments:
 	--test_set_size - maximum number of datapoints to run validation on [default = 4000]
 	--lr - learning rate for Adam Optimizer [default = 0.0002]
 
-Lastly run ```python classification/collect_classification_stats.py``` to synthesize the correlation metrics that we report in our paper. This will produce a pickle file containing a dictionary of all the results.
+Lastly run ```python collect_classification_stats.py``` to synthesize the correlation metrics that we report in our paper. This will produce a pickle file containing a dictionary of all the results.
 
 Arguments:
 
