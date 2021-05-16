@@ -53,6 +53,13 @@ Arguments:
 	--test_set_size - maximum number of datapoints to run validation on [default = 4000]
 	--lr - learning rate for Adam Optimizer [default = 0.0002]
 
+Run ```python logistic_beta.py``` to train a baseline logistic regression model. This will output the learned beta to a pickle file in the ```outputs/``` directory.
+
+Arguments:
+
+	--dataset - name of which dataset to train on [required, one of "IMDB", "Furd", "AG_News", "Newsgroups", "Yelp", "Amzn", "SNS"]
+	--test_set_size - maximum number of datapoints to run validation on [default = 4000]
+
 Lastly run ```python collect_classification_stats.py``` to synthesize the correlation metrics that we report in our paper. This will produce a pickle file containing a dictionary of all the results.
 
 Arguments:
@@ -89,7 +96,7 @@ Within each of these keys will be a dictionary with all the different results re
 - "best_perf" is ![](https://latex.codecogs.com/gif.latex?%5Cxi%5E*)
 
 
-We have provided two bash script files ```dump_logs.sh``` and ```train_runs.sh```, these run the exact set of ```train_classifier.py``` and ```eval_dump.py``` commands we ran. You will have to run ```embedding_beta.py``` and ```collect_classification_stats.py``` separately.
+We have provided four bash script files ```dump_logs.sh```, ```train_runs.sh```, ```embedding_runs.sh```, and ```logistic_runs.sh``` these run the exact set of ```eval_dump.py```, ```train_classifier.py```, ```embedding_beta.py```, and ```logistic_beta.py``` commands we ran. You will have to run ```collect_classification_stats.py``` separately.
 
 ## translation
 
