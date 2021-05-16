@@ -201,7 +201,7 @@ def fetch_stats(dat, split, metric, gold_run_name, comparison_run_names, unif_ru
 def load_dataset_dict(dataset_name, embed_key, logistic_key):
     dat = pkl.load(open('outputs/{dataset}_logs.pkl'.format(dataset=dataset_name), 'rb'))
     embed_beta = pkl.load(open('outputs/{dataset}embedding256beta.pkl'.format(dataset=dataset_name), 'rb'))
-    logistic_beta = pkl.load(open('outputs/{dataset}_logistic_beta.pkl'.format(dataset=dataset_name), 'rb'))
+    logistic_beta = pkl.load(open('outputs/{dataset}_logistic_beta.pkl'.format(dataset=dataset_name), 'rb'))[0, :]
     impute_beta(dat['data'], embed_beta, embed_key)
     impute_beta(dat['data'], logistic_beta, logistic_key)
     flip_betas(dat['data'])
